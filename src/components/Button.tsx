@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ButtonHTMLAttributes, DetailedHTMLProps, FC } from "react";
+import { Loader } from "./Loader";
 
 interface IButton
   extends DetailedHTMLProps<
@@ -12,6 +13,7 @@ interface IButton
   src?: string;
   rootClassName?: string;
   imageClass?: string;
+  isLoading?: boolean;
 }
 
 export const Button: FC<IButton> = ({
@@ -22,6 +24,7 @@ export const Button: FC<IButton> = ({
   rootClassName,
   disabled,
   imageClass,
+  isLoading,
   ...props
 }) => {
   return (
@@ -35,6 +38,11 @@ export const Button: FC<IButton> = ({
         onClick={onClick}
         {...props}
       >
+        {isLoading && (
+          <div className="w-[25%] h-[25%] flex items-center justify-center">
+            <Loader />
+          </div>
+        )}
         {src && (
           <Image
             src={src}
@@ -42,7 +50,7 @@ export const Button: FC<IButton> = ({
             className={"pl-[2px] pr-[2px] mt-3 mb-3 " + imageClass}
           />
         )}
-        {buttonName}
+        {!isLoading && buttonName}
       </button>
     </div>
   );

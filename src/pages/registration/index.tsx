@@ -1,7 +1,8 @@
-import { postApi } from "@/apiClient/methods";
+import { postApi } from "@/api-client/methods";
 import { Button } from "@/components/Button";
 import { CustomInput } from "@/components/CustomInput";
 import { validateEmail, validatePassword } from "@/utils/helpers";
+import { IRegistrationData } from "@/utils/interfaces";
 import { Poppins } from "next/font/google";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -11,44 +12,46 @@ const fpopin = Poppins({
   weight: ["400", "700"],
   subsets: ["latin"],
 });
+interface IError {
+  emailError: string;
+  passwordError: string;
+  confirmPasswordError: string;
+}
+
 const registration = () => {
   const router = useRouter();
-  const [isCheck, setIsCheck] = useState(false);
   const [isValid, setIsValid] = useState<boolean>(false);
-  const [input, setInput] = useState<{
-    name: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
-  }>({ name: "", email: "", password: "", confirmPassword: "" });
-  const [error, setError] = useState<{
-    emailError: string;
-    passwordError: string;
-    confirmPasswordError: string;
-  }>({ emailError: "", passwordError: "", confirmPasswordError: "" });
-
-  useEffect(() => {
-    validateForm();
-  }, [input]);
+  const [loader, setLoader] = useState<boolean>(false);
+  const [formData, setFormData] = useState<IRegistrationData>({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [error, setError] = useState<IError>({
+    emailError: "",
+    passwordError: "",
+    confirmPasswordError: "",
+  });
 
   const validateForm = () => {
-    const emailValid = validateEmail(input.email);
-    const passwordValid = validatePassword(input.password);
-    const confirmPasswordValid = validatePassword(input.confirmPassword);
-    const passwordsMatch = input.password === input.confirmPassword;
+    const emailValid = validateEmail(formData.email);
+    const passwordValid = validatePassword(formData.password);
+    const confirmPasswordValid = validatePassword(formData.confirmPassword);
+    const passwordsMatch = formData.password === formData.confirmPassword;
 
     setError({
       emailError: emailValid ? "" : "Invalid Email",
-      passwordError: passwordValid ? "" : "Invalid Password",
+      passwordError: passwordValid
+        ? ""
+        : "Password must be 8-12 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.",
       confirmPasswordError: passwordsMatch ? "" : "Passwords do not match",
     });
 
     if (emailValid && passwordValid && confirmPasswordValid && passwordsMatch) {
       setIsValid(true);
-      console.log("true");
     } else {
       setIsValid(false);
-      console.log("false");
     }
   };
 
@@ -58,26 +61,23 @@ const registration = () => {
     value: string,
     errorMessage: string
   ) => {
-    setInput((prev) => ({ ...prev, [name]: valid ? value : "" }));
+    setFormData((prev) => ({ ...prev, [name]: valid ? value : "" }));
     setError((prev) => ({
       ...prev,
       [`${name}Error`]: valid ? "" : errorMessage,
     }));
   };
 
-  const handleCheck = () => {
-    setIsCheck((prev) => !prev);
-  };
-
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    setLoader(true);
     try {
       const data = await postApi({
         endUrl: "user/create-user",
         data: {
-          full_name: input.name,
-          email: input.email,
-          password: input.password,
+          full_name: formData.name,
+          email: formData.email,
+          password: formData.password,
         },
       });
       if (data) {
@@ -85,12 +85,17 @@ const registration = () => {
         if (status && message !== "User already exist") {
           toast.success(message);
           router.push("/login");
-        } else {
-          toast.error(message);
         }
       }
-    } catch (message) {}
+    } catch (message) {
+    } finally {
+      setLoader(false);
+    }
   };
+
+  useEffect(() => {
+    validateForm();
+  }, [formData]);
 
   return (
     <div className="flex justify-center items-center h-[90vh]">
@@ -131,7 +136,12 @@ const registration = () => {
               name="password"
               placeholder="Password"
               isValid={({ name, valid, value }) =>
-                handleInput(name, valid, value, "Invalid Password")
+                handleInput(
+                  name,
+                  valid,
+                  value,
+                  "Password must be 8-12 characters long and include an uppercase letter, a lowercase letter, a number, and a special character."
+                )
               }
               errorMessage={error?.passwordError}
               max={0}
@@ -151,18 +161,7 @@ const registration = () => {
               min={0}
               required={true}
             />
-            <div className="flex gap-1 mt-4">
-              <input
-                type="checkbox"
-                checked={isCheck}
-                className="font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#979797]"
-                onChange={() => handleCheck()}
-                id="remember me"
-              />
-              <label className="font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#979797]">
-                Remember me
-              </label>
-            </div>
+
             <Button
               type="submit"
               rootClassName="flex justify-center mt-4"
@@ -172,6 +171,7 @@ const registration = () => {
               }
               buttonName="Sign Up"
               disabled={!isValid}
+              isLoading={loader}
             />
           </form>
         </div>
@@ -193,22 +193,3 @@ const registration = () => {
   );
 };
 export default registration;
-
-// const { email, password, confirmPassword } = input;
-//     const { emailError, passwordError, confirmPasswordError } = error;
-
-//     if (
-//       !emailError &&
-//       !passwordError &&
-//       !confirmPasswordError &&
-//       email.length > 0 &&
-//       password.length > 0 &&
-//       confirmPassword.length > 0 &&
-//       password === confirmPassword
-//     ) {
-//       setIsValid(true);
-//       console.log("true");
-//     } else {
-//       setIsValid(false);
-//       console.log("false");
-//     }

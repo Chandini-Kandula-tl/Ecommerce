@@ -1,20 +1,23 @@
-import { getApi, postApi } from "@/apiClient/methods";
+import { getApi, postApi } from "@/api-client/methods";
 import { Button } from "@/components/Button";
 import { CustomDropDown } from "@/components/CustomDropDown";
 import { CustomInput } from "@/components/CustomInput";
 import { IAddProduct, IProductParameters } from "@/utils/interfaces";
+import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
-
 interface ManageProductProps {
   mode: "Add" | "Edit";
   initialValues: any;
+  id?: string;
 }
 
 export const ManageProducts = ({
   mode = "Add",
   initialValues = {},
+  id,
 }: ManageProductProps) => {
-  const [input, setInput] = useState<IAddProduct>({
+  const router = useRouter();
+  const [productDetails, setProductDetails] = useState<IAddProduct>({
     product_name: "",
     images: [],
     quantity: 0,
@@ -24,20 +27,20 @@ export const ManageProducts = ({
     category_id: "",
     description: "",
   });
-  const [apiData, setApiData] = useState<IProductParameters>({
+
+  const [parametersData, setParametersData] = useState<IProductParameters>({
     colors: [],
     sizes: [],
     categories: [],
   });
 
-  const getData = async () => {
+  const getParametersData = async () => {
     const response = await getApi<IProductParameters>({
       endUrl: "get-product-parameters",
     });
-    console.log(response);
-    console.log(response?.data);
+
     const { colors, sizes, categories } = response?.data;
-    setApiData({
+    setParametersData({
       colors: colors,
       sizes: sizes,
       categories: categories,
@@ -45,11 +48,33 @@ export const ManageProducts = ({
   };
 
   useEffect(() => {
-    getData();
+    getParametersData();
+    // if (mode === "Edit") {
+    //   setIntialValues();
+    // }
   }, []);
 
+  // const setIntialValues = () => {
+  //   if (initialValues) {
+  //     setProductDetails({
+  //       product_name: initialValues.product_name || "",
+  //       images: initialValues.images || [],
+  //       quantity: initialValues.quantity || 0,
+  //       size_ids: initialValues.size_ids || [],
+  //       price: initialValues.price || 0,
+  //       color_ids: initialValues.color_ids || [],
+  //       category_id: initialValues.category_id || "",
+  //       description: initialValues.description || "",
+  //     });
+  //   }
+  // };
+
   const handleInput = (name: string, value: string | string[] | number) => {
-    setInput((prev) => ({ ...prev, [name]: value }));
+    if (name === "category_id") {
+      setProductDetails((prev) => ({ ...prev, [name]: value.toString() }));
+    } else {
+      setProductDetails((prev) => ({ ...prev, [name]: value }));
+    }
   };
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<string[]>([]);
@@ -58,33 +83,34 @@ export const ManageProducts = ({
     if (mode === "Add") {
       const data = await postApi({
         endUrl: "admin/add-product",
-        data: input,
+        data: productDetails,
       });
     } else {
       const data = await postApi({
         endUrl: "admin/edit-product",
-        data: input,
+        data: productDetails,
       });
     }
   };
 
   // const handleArrayInput = (name: string, value: string[] | string) => {
   //   console.log(name, value);
-  //   setInput((prev) => ({
+  //   setProductDetails((prev) => ({
   //     ...prev,
   //     [name]: value,
   //   }));
   // };
 
   useEffect(() => {
-    setInput((prev) => ({ ...prev, images: files }));
+    setProductDetails((prev) => ({ ...prev, images: files }));
   }, [files]);
 
   const handleRemoveImage = (index: number) => {
-    console.log("clicked");
+    // console.log("clicked");
     setFiles((prev) => prev.filter((file, i) => i !== index));
   };
-  console.log(files, "sdfghj");
+
+  // console.log(files, "sdfghj");
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (fileList) {
@@ -115,17 +141,25 @@ export const ManageProducts = ({
       });
     });
   };
+  console.log(initialValues, "IV");
+  console.log(parametersData.colors, "colors");
+  console.log(initialValues.color_ids);
+  console.log(initialValues.price);
+
+  const backButton = () => {
+    router.back();
+  };
 
   return (
     <div className="mt-[154px]">
-      <div className="h-[100%] sticky top-[30%] bg-red-300">
+      <div className="h-[100%] sticky top-[154px]">
         <div className="font-primary font-semibold text-[36px] leading-[44px] tracking-[-1.5px] text-[#000000]">
-          {`${mode} Products`}
+          {`${mode} Product`}
         </div>
         <div className="mt-[77px] flex gap-[42px] h-[100%]">
           {/* left side for images */}
           <div className="flex flex-col w-[30%] mt-[20px] h-[100%]">
-            <div className=" grid grid-cols-4 gap-4 h-[100%] overflow-auto">
+            <div className=" grid grid-cols-4 gap-4 h-[100%]">
               {files.map((file, index) => (
                 <div key={index} className="relative w-full h-full">
                   <img
@@ -134,12 +168,6 @@ export const ManageProducts = ({
                     // width={270}
                     // height={270}
                   />
-                  {/* <button
-                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                  onClick={() => handleRemoveImage(index)}
-                >
-                  X
-                </button> */}
                   <Button
                     buttonName="x"
                     buttonClassName="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
@@ -167,7 +195,7 @@ export const ManageProducts = ({
               />
             </form>
           </div>
-          {/* right side for input fields */}
+          {/* right side for productDetails fields */}
           <div className="w-[70%]">
             <div className="flex gap-[54px]">
               <CustomInput
@@ -192,13 +220,13 @@ export const ManageProducts = ({
                 isValid={({ value }) =>
                   handleInput("quantity", parseFloat(value))
                 }
-                defaultValue={initialValues.quantity}
+                defaultValue={initialValues.quantity || ""}
               />
             </div>
             <div className="mt-[24px] flex gap-[54px]">
               <CustomDropDown
                 showDefault={false}
-                list={apiData.sizes.map((size) => ({
+                list={parametersData.sizes.map((size) => ({
                   label: size.size_type,
                   value: size.size_id,
                 }))}
@@ -210,6 +238,7 @@ export const ManageProducts = ({
                 placeholder={
                   mode === "Add" ? "Available Sizes" : `${mode} Sizes`
                 }
+
                 // handleArrayInput
               />
               <CustomInput
@@ -221,14 +250,14 @@ export const ManageProducts = ({
                 min={1}
                 required={true}
                 isValid={({ value }) => handleInput("price", parseFloat(value))}
-                defaultValue={initialValues.price}
+                defaultValue={initialValues.price || ""}
               />
             </div>
             <div className="mt-[30px] flex gap-[54px] h-10">
               {/* <div className="flex w-full gap-4 border border-black"> */}
               <CustomDropDown
                 showDefault={false}
-                list={apiData.colors.map((color) => ({
+                list={parametersData.colors.map((color) => ({
                   label: color.color_name,
                   value: color.color_id,
                 }))}
@@ -240,13 +269,16 @@ export const ManageProducts = ({
                 placeholder={
                   mode === "Add" ? "Available Colors" : `${mode} Colors`
                 }
+                // selectedItems={initialValues.color_ids.map((color_id:string)=>({
+                //   getColorObject(parametersData.colors,color_id)
+                // }))}
               />
               {/* handleArrayInput */}
               {/* </div> */}
 
               <CustomDropDown
                 showDefault={false}
-                list={apiData.categories.map((category) => ({
+                list={parametersData.categories.map((category) => ({
                   label: category.category_name,
                   value: category.category_id,
                 }))}
@@ -255,11 +287,11 @@ export const ManageProducts = ({
                 name="category_id"
                 onSelect={(name, value) => handleInput(name, value)}
                 placeholder={mode === "Add" ? "Category" : `${mode} Category`}
-                // handle array input
+                // handle array productDetails
               />
             </div>
             <CustomInput
-              className="mt-[30px] h-[120px] pl-4 bg-transparent font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#A9ABBD] border-[#979797]"
+              className="mt-[30px] h-[120px] pl-4 bg-transparent font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#A9ABBD] border-[#979797] "
               placeholder={
                 mode === "Add" ? "Description" : `${mode} Description`
               }
@@ -274,7 +306,7 @@ export const ManageProducts = ({
         </div>
 
         {/* <form>
-        <input
+        <productDetails
           type="file"
           name="file"
           ref={inputRef}
@@ -292,13 +324,14 @@ export const ManageProducts = ({
       /> */}
         <div className="mt-[123px] flex justify-center gap-[66px]">
           <Button
-            buttonName="Add"
+            buttonName={mode === "Add" ? "Add" : "Save"}
             buttonClassName="bg-[#000000] !text-[#FFFFFF] w-[149px] h-[50px]"
             onClick={handleButton}
           />
           <Button
             buttonName="Back"
             buttonClassName="bg-[#000000] !text-[#FFFFFF] w-[149px] h-[50px]"
+            onClick={backButton}
           />
         </div>
       </div>

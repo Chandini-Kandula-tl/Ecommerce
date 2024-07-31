@@ -1,75 +1,46 @@
+import { getApi } from "@/api-client/methods";
 import { Button } from "@/components/Button";
 import { CheckBox } from "@/components/CheckBox";
 import { CustomInput } from "@/components/CustomInput";
+import { formatCost } from "@/utils/helpers";
+import { IListProduct, IProductParameters } from "@/utils/interfaces";
 import Image from "next/image";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 const AdminDashboardProductList = () => {
   const [isSelected, setIsSelected] = useState<{
     categories: string[];
   }>({ categories: [] });
-  const items = [
-    { label: "Jackets", value: "jackets" },
-    { label: "Sweatshirts & Hoodies", value: "swetshirts_hoodies" },
-    { label: "Sweaters", value: "sweaters" },
-    { label: "Shirts", value: "shirts" },
-    { label: "T-Shirts", value: "t_shirts" },
-    { label: "Pants & Jeans", value: "pants_jeans" },
-  ];
-  const products = [
-    {
-      product_id: "001",
-      product_name: "Men’s winter jacket",
-      description: "String",
-      images: [
-        "https://imgmediagumlet.lbb.in/media/2023/05/64745b1816cbc35fdad2c6ea_1685347096447.jpg?fm=webp&w=750&h=500&dpr=1",
-        "https://imgmediagumlet.lbb.in/media/2023/05/64745b1816cbc35fdad2c6ee_1685347096993.jpg?fm=webp&w=750&h=500&dpr=1",
-        "https://imgmediagumlet.lbb.in/media/2023/05/6474602016cbc35fdad2cd7f_1685348384396.jpg?fm=webp&w=750&h=500&dpr=1",
-        "https://imgmediagumlet.lbb.in/media/2023/05/64745b1716cbc35fdad2c6e6_1685347095802.jpg?fm=webp&w=750&h=500&dpr=1",
-      ],
-      available_sizes: "String[]",
-      available_colours: "String[]",
-      price: 99,
-      category: "String",
-      rating: "Float",
-      quantity: "Number",
-    },
-    {
-      product_id: "001",
-      product_name: "Men’s winter jacket",
-      description: "String",
-      images: [
-        "https://imgmediagumlet.lbb.in/media/2023/05/64745b1816cbc35fdad2c6ea_1685347096447.jpg?fm=webp&w=750&h=500&dpr=1",
-        "https://imgmediagumlet.lbb.in/media/2023/05/64745b1816cbc35fdad2c6ee_1685347096993.jpg?fm=webp&w=750&h=500&dpr=1",
-        "https://imgmediagumlet.lbb.in/media/2023/05/6474602016cbc35fdad2cd7f_1685348384396.jpg?fm=webp&w=750&h=500&dpr=1",
-        "https://imgmediagumlet.lbb.in/media/2023/05/64745b1716cbc35fdad2c6e6_1685347095802.jpg?fm=webp&w=750&h=500&dpr=1",
-      ],
-      available_sizes: "String[]",
-      available_colours: "String[]",
-      price: 99,
-      category: "String",
-      rating: "Float",
-      quantity: "Number",
-    },
-    {
-      product_id: "001",
-      product_name: "Men’s winter jacket",
-      description: "String",
-      images: [
-        "https://imgmediagumlet.lbb.in/media/2023/05/64745b1816cbc35fdad2c6ea_1685347096447.jpg?fm=webp&w=750&h=500&dpr=1",
-        "https://imgmediagumlet.lbb.in/media/2023/05/64745b1816cbc35fdad2c6ee_1685347096993.jpg?fm=webp&w=750&h=500&dpr=1",
-        "https://imgmediagumlet.lbb.in/media/2023/05/6474602016cbc35fdad2cd7f_1685348384396.jpg?fm=webp&w=750&h=500&dpr=1",
-        "https://imgmediagumlet.lbb.in/media/2023/05/64745b1716cbc35fdad2c6e6_1685347095802.jpg?fm=webp&w=750&h=500&dpr=1",
-      ],
-      available_sizes: "String[]",
-      available_colours: "String[]",
-      price: 99,
-      category: "String",
-      rating: "Float",
-      quantity: "Number",
-    },
-  ];
+  const router = useRouter();
+  const [products, setProducts] = useState<IListProduct[]>([]);
+  const [parameters, setParameters] = useState<IProductParameters>({
+    colors: [],
+    sizes: [],
+    categories: [],
+  });
+  const [selected, setSelected] = useState<{
+    categories: string[];
+  }>({ categories: [] });
+
   const handleClear = () => {
     setIsSelected({ categories: [] });
+  };
+
+  useEffect(() => {
+    getProductsData();
+    getProductParameters();
+  }, []);
+
+  const getProductsData = async () => {
+    const response = await getApi({ endUrl: "list-products" });
+    setProducts((prev) => [...prev, ...response?.data?.products]);
+    console.log(response?.data?.products);
+  };
+
+  const getProductParameters = async () => {
+    const response = await getApi({ endUrl: "get-product-parameters" });
+    const { colors, sizes, categories } = response?.data;
+    setParameters({ colors, sizes, categories });
   };
 
   const handleCheckBox = (item: string) => {
@@ -85,6 +56,15 @@ const AdminDashboardProductList = () => {
       };
     });
   };
+
+  const handleInput = (name: string, value: string | string[]) => {
+    setSelected((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditButton = async (id: string) => {
+    router.push(`/edit-product/${id}`);
+  };
+
   return (
     <div className="mt-[154px]">
       <div className="flex w-full justify-between">
@@ -118,16 +98,16 @@ const AdminDashboardProductList = () => {
             Categories
           </div>
           <div className="flex flex-col gap-[10px] font-primary font-normal text-[13px] leading-[17px] tracking-[-0.4px] text-[#000000]">
-            {items.map((item) => (
-              <div key={item.value}>
-                <CheckBox
-                  className="border-black text-[#111111]"
-                  text={item.label}
-                  checked={isSelected.categories.includes(item.value)}
-                  onChange={() => handleCheckBox(item.value)}
-                />
-              </div>
-            ))}
+            <CheckBox
+              categories={parameters.categories.map((category) => ({
+                label: category.category_name,
+                value: category.category_id,
+              }))}
+              name="categories"
+              className="border-black text-[#111111]"
+              selectedItems={selected.categories}
+              onSelect={(name, value) => handleInput(name, value)}
+            />
           </div>
         </div>
         <div className="w-[80%]">
@@ -147,7 +127,7 @@ const AdminDashboardProductList = () => {
                       {product.product_name}
                     </div>
                     <div className="font-primary font-semibold text-xxl leading-[30px] tracking-[-0.55px] text-[#000000]">
-                      {product.price}
+                      {formatCost(product.price)}
                     </div>
                   </div>
                 </div>
@@ -156,6 +136,7 @@ const AdminDashboardProductList = () => {
                     buttonName="Edit"
                     buttonClassName="font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] !border !border-[#0D0D0D] w-full h-[46px]"
                     rootClassName="w-[50%]"
+                    onClick={() => handleEditButton(product.product_id)}
                   />
                   <Button
                     buttonName="Delete"

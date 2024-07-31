@@ -14,13 +14,9 @@ interface ICustomDropDown {
   onSelect?: (name: string, value: string | string[]) => void;
   isMultiple?: boolean;
   placeholder?: string;
-  defaultValue?: string | string[];
+  defaultValue?: string;
+  selectedItems?: IOption[];
 }
-
-// interface IOption {
-//   label: string;
-//   value: string;
-// }
 
 export const CustomDropDown: FC<ICustomDropDown> = ({
   label,
@@ -34,19 +30,34 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
   onSelect,
   placeholder,
   defaultValue,
+  selectedItems,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<IOption[]>([]);
 
+  useEffect(() => {
+    if (defaultValue) {
+      let result = list.find((item) => item.value === defaultValue);
+      if (result) {
+        let newSelectedItems = [result];
+        setSelectedItem(newSelectedItems);
+        if (onSelect && name) {
+          onSelect(
+            name,
+            newSelectedItems.map((item) => item.value)
+          );
+        }
+      }
+    }
+  }, [defaultValue]);
+
   const handleScroll = () => {
     setIsOpen(false);
   };
-
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
   const handleClickedItem = (item: IOption) => {
     setSelectedItem((prev) => {
       let newSelectedItem: IOption[] = [];
@@ -74,6 +85,8 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
   const handleRemoveItem = (item: IOption) => {
     setSelectedItem((prev) => prev.filter((i) => i.value !== item.value));
   };
+
+  console.log(selectedItem, "selected");
 
   return (
     <div
@@ -133,9 +146,14 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
         />
       </button>
       {isOpen && (
-        <div className="absolute top-[120%] w-full bg-white shadow-2xl rounded-2xl z-10">
+        <div className="absolute top-[120%] w-full bg-white shadow-md rounded-md z-10">
           {list
-            .filter((item) => !selectedItem.some((i) => i.label === item.label))
+            .filter((item) => {
+              if (!showDefault) {
+                return item.value !== defaultValue;
+              }
+              return !selectedItem.some((i) => i.label === item.label);
+            })
             .map((item) => (
               <div
                 key={item.label}

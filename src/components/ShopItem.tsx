@@ -1,24 +1,25 @@
-import { AppContext } from "@/pages/_app";
-import { IProduct } from "@/utils/interfaces";
+import { formatCost } from "@/utils/helpers";
+import { IListProduct } from "@/utils/interfaces";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { FC, useContext } from "react";
+import { FC } from "react";
 // import Image, { StaticImageData } from 'next/image'
 
 interface IShopItem {
-  items: IProduct[];
+  items: IListProduct[];
   rootClassName?: string;
 }
 
-export const ShopItem: FC<IShopItem> = ({ items, rootClassName }) => {
-  const { setProductDetails } = useContext(AppContext);
+export const ShopItem: FC<IShopItem> = ({ items, rootClassName, ...props }) => {
+  // const { setProductDetails } = useContext(AppContext);
   const router = useRouter();
 
-  const handleImageClick = (product: IProduct) => {
-    setProductDetails(product);
+  const handleImageClick = (product: IListProduct) => {
+    // setProductDetails(product);
     console.log(product);
     router.push(`/shop/${product.product_id}`);
   };
+  // console.log(items, "items");
   return (
     <div className={"grid-cols-4 grid gap-y-5 overflow-scroll" + rootClassName}>
       {items.map((item, index) => (
@@ -34,13 +35,13 @@ export const ShopItem: FC<IShopItem> = ({ items, rootClassName }) => {
             width={265}
             height={265}
             onClick={() => handleImageClick(item)}
-            className="cursor-pointer"
+            className="cursor-pointer w-[265px] h-[265px]"
           />
           <div className="flex justify-between mt-[12.69px] ">
             <div className="font-[700] ">{item.product_name}</div>
-            <div className="font-normal">{item.available_sizes[0]}</div>
+            <div className="font-normal">{item.sizes[0]}</div>
           </div>
-          <div className="font-normal">{item.price}</div>
+          <div className="font-normal">{formatCost(item.price)}</div>
         </div>
       ))}
     </div>

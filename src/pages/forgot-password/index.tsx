@@ -1,7 +1,6 @@
-import { postApi } from "@/apiClient/methods";
+import { postApi } from "@/api-client/methods";
 import { Button } from "@/components/Button";
 import { CustomInput } from "@/components/CustomInput";
-// import { error } from "console";
 import { Poppins } from "next/font/google";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -14,27 +13,26 @@ const fpopin = Poppins({
 
 const forgotPassword = () => {
   const [isValid, setIsValid] = useState<boolean>(false);
-  const [input, setInput] = useState<{ email: string }>({ email: "" });
+  const [formData, setFormData] = useState<{ email: string }>({ email: "" });
   const [error, setError] = useState({ emailError: "" });
+  const [loader, setLoader] = useState<boolean>(false);
   const router = useRouter();
-  useEffect(() => {
-    validateForm();
-  }, [input]);
+
   const validateForm = () => {
-    if (!error.emailError.length && input.email.length) {
+    if (!error.emailError.length && formData.email.length) {
       setIsValid(true);
-      console.log("true");
     } else {
       setIsValid(false);
-      console.log("false");
     }
   };
+
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    setLoader(true);
     try {
       if (!isValid) return;
       const data = {
-        email: input.email,
+        email: formData.email,
       };
       const apiData = await postApi({
         endUrl: "generate-otp",
@@ -42,10 +40,11 @@ const forgotPassword = () => {
       });
       if (apiData) {
         toast.success(apiData?.message);
-      } else {
-        toast.error(apiData?.message);
       }
-    } catch (message) {}
+    } catch (message) {
+    } finally {
+      setLoader(false);
+    }
   };
 
   const handleInput = (
@@ -54,12 +53,17 @@ const forgotPassword = () => {
     value: string,
     errorMessage: string
   ) => {
-    setInput((prev) => ({ ...prev, [name]: valid ? value : "" }));
+    setFormData((prev) => ({ ...prev, [name]: valid ? value : "" }));
     setError((prev) => ({
       ...prev,
       [`${name}Error`]: valid || !value.length ? "" : errorMessage,
     }));
   };
+
+  useEffect(() => {
+    validateForm();
+  }, [formData]);
+
   return (
     <div className="flex justify-center items-center h-[90vh]">
       <div className="bg-[#FFFFFF] px-[29px] py-[30px] w-[40%]">
@@ -93,6 +97,7 @@ const forgotPassword = () => {
             }
             disabled={!isValid}
             rootClassName="flex items-center justify-center"
+            isLoading={loader}
           />
         </form>
       </div>

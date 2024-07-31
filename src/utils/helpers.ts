@@ -1,4 +1,5 @@
 import { DOLLAR } from "./constants";
+import { Icolor, ISize } from "./interfaces";
 
 export const validateEmail = (email: string): boolean => {
   const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}$/;
@@ -11,7 +12,7 @@ export const validatePassword = (password: string): boolean => {
   let lowerCase = 0;
   let number = 0;
   let specialChar = 0;
-  if (password.length < 8) {
+  if (password.length < 8 || password.length > 12) {
     return false;
   } else {
     for (let i = 0; i < password.length; i++) {
@@ -65,4 +66,18 @@ export const formatCost = (cost: number) => {
   const formattedCost = cost.toFixed(2);
   if (formattedCost.endsWith(".00")) return DOLLAR + Math.floor(cost);
   return DOLLAR + formattedCost;
+};
+
+export const getSizeObject = (sizeObject: any, size_id: string) => {
+  const resultObject = sizeObject.find(
+    (size: ISize) => size.size_id === size_id
+  );
+  return resultObject;
+};
+
+export const getColorObject = (colorObject: any, color_id: string) => {
+  const resultObject = colorObject.find(
+    (color: Icolor) => color.color_id === color_id
+  );
+  return resultObject;
 };

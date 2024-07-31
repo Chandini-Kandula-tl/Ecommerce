@@ -1,10 +1,12 @@
-import { postApi } from "@/apiClient/methods";
+import { postApi } from "@/api-client/methods";
 import { Button } from "@/components/Button";
 import { CustomInput } from "@/components/CustomInput";
+import { IAuthData, IUserData } from "@/utils/interfaces";
 import { Poppins } from "next/font/google";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+
 const fpopin = Poppins({
   weight: ["400", "700"],
   subsets: ["latin"],
@@ -13,44 +15,46 @@ const fpopin = Poppins({
 const login = () => {
   const [isCheck, setIsCheck] = useState<boolean>(false);
   const [isValid, setIsValid] = useState<boolean>(false);
-  const [input, setInput] = useState<{ email: string; password: string }>({
+  const [formData, setFormData] = useState<IAuthData>({
     email: "",
     password: "",
   });
   const [error, setError] = useState({ emailError: "", passwordError: "" });
+  const [loader, setLoader] = useState<boolean>(false);
   const router = useRouter();
-
-  useEffect(() => {
-    validateForm();
-  }, [input]);
 
   const validateForm = () => {
     if (
       !(error?.emailError?.length || error?.passwordError?.length) &&
-      input.email?.length &&
-      input.password?.length
+      formData.email?.length &&
+      formData.password?.length
     ) {
       setIsValid(true);
-      console.log("true");
     } else {
       setIsValid(false);
-      console.log("false");
     }
   };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    setLoader(true);
     try {
-      const response = await postApi({
+      const response = await postApi<IUserData>({
         endUrl: "login",
-        data: input,
+        data: formData,
       });
-      console.log(response, "before check");
+
+      console.log({ response });
+
       if (response) {
         const { status, message, data } = response;
-        localStorage.setItem("userData", JSON.stringify(data));
-        const userData = JSON.parse(localStorage?.getItem("userData") ?? "");
         if (status) {
+          localStorage.setItem("userData", JSON.stringify(data));
+          let accessToken = response?.data?.accessToken;
+          let refreshToken = response?.data?.refreshToken;
+          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("refreshToken", refreshToken);
+          const userData = JSON.parse(localStorage.getItem("userData") ?? "");
           if (data?.role === "customer") {
             toast.success("Login Successful");
             router.push("/home");
@@ -62,11 +66,10 @@ const login = () => {
           toast.error(message);
         }
       }
-      console.log("button CLicked");
-      console.log(response, "response");
-      const accessToken = response?.data?.accessToken;
-      localStorage.setItem("accessToken", accessToken);
-    } catch (message) {}
+    } catch (message) {
+    } finally {
+      setLoader(false);
+    }
   };
 
   const handleCheck = () => {
@@ -79,7 +82,7 @@ const login = () => {
     value: string,
     errorMessage: string
   ) => {
-    setInput((prev) => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: valid ? value : "",
     }));
@@ -88,6 +91,10 @@ const login = () => {
       [`${name}Error`]: valid || !value.length ? "" : errorMessage,
     }));
   };
+
+  useEffect(() => {
+    validateForm();
+  }, [formData]);
 
   return (
     <div className="flex justify-center items-center h-[90vh]">
@@ -119,7 +126,12 @@ const login = () => {
               name="password"
               placeholder="Password"
               isValid={({ valid, value, name }) =>
-                handleInput(name, valid, value, "Invalid Password")
+                handleInput(
+                  name,
+                  valid,
+                  value,
+                  "Password must be 8-12 characters long and include an uppercase letter, a lowercase letter, a number, and a special character."
+                )
               }
               max={0}
               min={0}
@@ -127,12 +139,6 @@ const login = () => {
               required={true}
             />
             <div className="flex justify-between pt-[19px]">
-              {/* <CheckBox
-                text="Remember me"
-                className="font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#979797]"
-                checked={isCheck}
-                onChange={() => handleCheck()}
-              /> */}
               <div className="flex gap-1">
                 <input
                   type="checkbox"
@@ -161,6 +167,7 @@ const login = () => {
                 (!isValid ? "bg-gray-500 cursor-not-allowed" : "bg-[#000000]")
               }
               rootClassName="flex justify-center mt-[21px]"
+              isLoading={loader}
             />
           </form>
         </div>

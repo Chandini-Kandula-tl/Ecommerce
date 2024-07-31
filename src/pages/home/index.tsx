@@ -1,5 +1,6 @@
-import { getApi } from "@/apiClient/methods";
+import { getApi } from "@/api-client/methods";
 import { Button } from "@/components/Button";
+import { COVER_IMAGE } from "@/utils/constants";
 import { IHomePageProduct } from "@/utils/interfaces";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -7,34 +8,36 @@ import { useEffect, useState } from "react";
 import press from "../../../public/images/press-logos.svg";
 const home = () => {
   const router = useRouter();
-  const [response, setResponse] = useState<IHomePageProduct[]>([]);
+  const [productsData, setProductsData] = useState<IHomePageProduct[]>([]);
 
-  useEffect(() => {
-    getData();
-  }, []);
-
-  const getData = async () => {
-    const getApiData = await getApi<{ products: IHomePageProduct[] }>({
-      endUrl: "home",
-    });
-
-    setResponse(getApiData?.data?.products);
+  const getProductsData = async () => {
+    try {
+      const getApiData = await getApi<{ products: IHomePageProduct[] }>({
+        endUrl: "home",
+      });
+      setProductsData(getApiData?.data?.products || []);
+    } catch (message) {
+      console.log(message);
+    }
   };
-  const handleShopButton = () => {
-    return (
-      <Button
-        buttonName="Shop All"
-        buttonClassName="bg-transparent !text-[#000000] py-[14px] px-[66px] font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px]"
-        rootClassName="border border-[#0D0D0D] mt-5 text-center"
-        onClick={() => router.push("/shop")}
-      />
-    );
-  };
+
   const handleImageClick = (product: IHomePageProduct) => {
-    console.log(product);
     router.push(`/shop/${product.product_id}`);
   };
-  console.log(response, "asdfghjkl");
+
+  const ShopButton = () => (
+    <Button
+      buttonName="Shop All"
+      buttonClassName="bg-transparent !text-[#000000] py-[14px] px-[66px] font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px]"
+      rootClassName="border border-[#0D0D0D] mt-5 text-center"
+      onClick={() => router.push("/shop")}
+    />
+  );
+
+  useEffect(() => {
+    getProductsData();
+  }, []);
+
   return (
     <div className="mt-[66px] h-[100%]">
       <div className="flex flex-col items-center justify-center">
@@ -45,9 +48,9 @@ const home = () => {
           Create screens directly in Method or add your images from Sketch or
           Figma. You can even sync designs from your cloud storage!
         </div>
-        {handleShopButton()}
+        <ShopButton />
         <Image
-          src="https://img.freepik.com/free-psd/landing-page-template-online-fashion-sale_23-2148585400.jpg?w=1480&t=st=1720084475~exp=1720085075~hmac=3d052577ca3bad075514ab630555a1dae5dd74b810e5928adf1a8a3751aefda0"
+          src={COVER_IMAGE}
           alt="image not found"
           width={1500}
           height={521}
@@ -61,15 +64,23 @@ const home = () => {
           Create screens directly in Method or add your images from Sketch or
           Figma. You can even sync designs from your cloud storage!
         </div>
-        {handleShopButton()}
-        <div className="my-[66px] flex gap-[200px]">
-          {response.map((product) => (
-            <div key={product.product_id} className="">
-              <Image
+        <ShopButton />
+        <div className="my-[66px] flex gap-[25px] w-[100%] justify-between">
+          {productsData.map((product, index) => (
+            <div
+              key={product.product_id}
+              className={`flex ${
+                index !== 1 ? "mt-[80px]" : ""
+              } w-[33%] h-[521px]`}
+            >
+              <img
                 src={product.images[0]}
                 alt={product.product_name}
-                width={368}
-                height={521}
+                // width={368}
+                // height={521}
+                // layout="fill"
+                width={"100%"}
+                height={"100%"}
                 className="mt-[85px] cursor-pointer"
                 onClick={() => handleImageClick(product)}
               />

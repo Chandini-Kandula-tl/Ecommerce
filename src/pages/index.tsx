@@ -1,8 +1,13 @@
 "use client";
 
+import { useTotalContext } from "@/context/productContext";
+
 export default function Home() {
+  const { state, dispatch } = useTotalContext();
+  console.log(state, "contextData");
   return (
     <div>
+      {/* <CheckoutForm /> */}
       {/* <SearchBar
         className="top-[50px]"
         className2=""

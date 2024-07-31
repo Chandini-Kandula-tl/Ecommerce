@@ -1,29 +1,44 @@
 // import productDetails from "@/pages/shop/[id]/[name]";
-import { AppContext } from "@/pages/_app";
 import { useRouter } from "next/router";
-import { FC, useContext } from "react";
+import { FC } from "react";
 interface IMulImages {
   images: string[];
   rootClassName?: string;
   imageClassName?: string;
+  selectedSize?: string;
+  quantity?: number;
+  product_id?: string;
+  selectedColor?: string;
 }
 
 export const MultipleImages: FC<IMulImages> = ({
   images,
   rootClassName,
   imageClassName,
+  selectedSize,
+  quantity,
+  product_id,
+  selectedColor,
 }) => {
   const router = useRouter();
-  const { productDetails } = useContext(AppContext);
+  // endUrl: `list-products?page=${
+  //   props.pageNumber
+  // }&limit=${LIMIT}&sort_by=${dropDownSelection}${
+  //   categoryQuery ? `&${categoryQuery}` : ""
+  // }${colorQuery ? `&${colorQuery}` : ""}`,
+  // const { productDetails } = useContext(AppContext);
 
   const handleImageClick = () => {
     router.push(
-      `/shop/${productDetails.product_id}/${productDetails.category}`
+      `/shop/${product_id}/category?quantity=${quantity}&size=${selectedSize}&color=${selectedColor}`
     );
   };
 
   return (
-    <div className={"flex flex-wrap gap-[11px] " + rootClassName}>
+    <div
+      className={"flex flex-wrap gap-[11px] " + rootClassName}
+      // style={{ maxHeight: "500px" }}
+    >
       {images.map((image, index) => (
         <img
           key={index}

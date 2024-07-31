@@ -1,18 +1,40 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Button } from "./Button";
 interface IQuantity {
   className?: string;
   countClassName?: string;
+  name: string;
+  onSelect?: (name: string, value: number, type: string) => void;
+  selectedQuantity?: number;
+  maxQuantity?: number;
 }
-export const Quantity: FC<IQuantity> = ({ className, countClassName }) => {
+export const Quantity: FC<IQuantity> = ({
+  className,
+  countClassName,
+  selectedQuantity,
+  onSelect,
+  name,
+  maxQuantity = Infinity,
+}) => {
+  console.log({ maxQuantity });
   const [count, setCount] = useState(1);
   const handleDecrement = () => {
     if (count > 1) setCount(count - 1);
     else setCount(1);
+    if (onSelect && name) {
+      onSelect(name, count - 1, "decrement");
+    }
   };
   const handleIncrement = () => {
-    setCount(count + 1);
+    if (count < maxQuantity) setCount(count + 1);
+    if (onSelect && name && count <= maxQuantity) {
+      onSelect(name, count + 1, "increment");
+    }
   };
+  useEffect(() => {
+    setCount(selectedQuantity || 1);
+  }, [selectedQuantity]);
+
   return (
     <div>
       <div

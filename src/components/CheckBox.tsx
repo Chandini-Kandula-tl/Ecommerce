@@ -8,6 +8,7 @@ interface ICheckBox {
   onSelect?: (name: string, value: string[] | string) => void;
   name: string;
   selectedItems: string[];
+  isMultiple?: boolean;
 }
 
 export const CheckBox: FC<ICheckBox> = ({
@@ -17,23 +18,33 @@ export const CheckBox: FC<ICheckBox> = ({
   onSelect,
   name,
   selectedItems,
+  isMultiple = false,
   ...props
 }) => {
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>(selectedItems);
   useEffect(() => {
     setSelected(selectedItems);
   }, [selectedItems]);
 
   const handleCheckBox = (category: IOption) => {
-    // console.log(category, "category");
-    const updatedSelected = selected.includes(category.value)
-      ? selected.filter((cat) => cat !== category.value)
-      : [...selected, category.value];
-    setSelected(updatedSelected);
+    setSelected((prev) => {
+      let newSelected: string[] = [];
 
-    if (onSelect && name) {
-      onSelect(name, updatedSelected);
-    }
+      if (isMultiple) {
+        const isSelected = prev.includes(category.value);
+        newSelected = isSelected
+          ? prev.filter((selectedValue) => selectedValue !== category.value)
+          : [...prev, category.value];
+      } else {
+        newSelected = [category.value];
+      }
+
+      if (onSelect && name) {
+        onSelect(name, newSelected);
+      }
+
+      return newSelected;
+    });
   };
   // console.log(selected, "selected");
   return (
