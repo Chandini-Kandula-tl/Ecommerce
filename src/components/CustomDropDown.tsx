@@ -48,8 +48,11 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
           );
         }
       }
+    } else if (selectedItems) {
+      // Initialize selectedItem with selectedItems prop
+      setSelectedItem(selectedItems);
     }
-  }, [defaultValue]);
+  }, [defaultValue, selectedItems, list, onSelect, name]);
 
   const handleScroll = () => {
     setIsOpen(false);
@@ -86,7 +89,7 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
     setSelectedItem((prev) => prev.filter((i) => i.value !== item.value));
   };
 
-  console.log(selectedItem, "selected");
+  console.log(selectedItems, "selected");
 
   return (
     <div

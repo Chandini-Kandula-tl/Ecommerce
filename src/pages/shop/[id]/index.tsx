@@ -97,6 +97,10 @@ const Product = () => {
     }
   };
 
+  const handleCost = () => {
+    return quantity * productDetails.price;
+  };
+
   useEffect(() => {
     getProductData();
   }, [router]);
@@ -110,7 +114,11 @@ const Product = () => {
       <MultipleImages
         rootClassName="w-[50%]"
         images={productDetails.images}
-        imageClassName="h-[45%] w-[45%] bg-black"
+        imageClassName={
+          productDetails.images.length > 4
+            ? "h-[33%] w-[33%]"
+            : "h-[45%] w-[45%] bg-black"
+        }
         selectedSize={isSelected.size_ids.toString()}
         quantity={quantity}
         product_id={productDetails.product_id}
@@ -157,7 +165,7 @@ const Product = () => {
           }))}
           selectedColors={isSelected.color_ids}
           onSelect={(name, value) => handleInput(name, value)}
-          multiple={true}
+          multiple={false}
         />
         <SizePicker
           name="size_ids"
@@ -173,7 +181,7 @@ const Product = () => {
           onSelect={(name, value) => handleInput(name, value)}
         />
         <div className="underline font-primary font-normal text-xs leading-[26px] tracking-[-0.3px] text-borderColor mb-[12px] cursor-pointer">
-          {`Size & FitGuide`}
+          {`Size & Fit Guide`}
         </div>
         <div className="flex flex-row justify-between">
           <div className="font-secondary font-normal text-sm leading-[20px] tracking-[-0.4px]  text-[#979797]">
@@ -186,7 +194,7 @@ const Product = () => {
         <div className="flex mb-[12px] gap-[18px] mt-[10px]">
           <Button
             buttonClassName="border py-[14px] px-[110px] bg-primary font-semibold text-[16px] text-white tracking-[-0.4px] leading-[22px]"
-            buttonName={`Add to Cart - ${formatCost(productDetails.price)}`}
+            buttonName={`Add to Cart - ${formatCost(handleCost())}`}
             onClick={handleCart}
             isLoading={loader.buttonLoader}
           />

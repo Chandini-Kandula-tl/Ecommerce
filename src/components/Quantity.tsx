@@ -18,19 +18,29 @@ export const Quantity: FC<IQuantity> = ({
 }) => {
   console.log({ maxQuantity });
   const [count, setCount] = useState(1);
+
   const handleDecrement = () => {
-    if (count > 1) setCount(count - 1);
-    else setCount(1);
-    if (onSelect && name) {
-      onSelect(name, count - 1, "decrement");
+    if (count > 1) {
+      setCount(count - 1);
+      if (onSelect && name) {
+        onSelect(name, count - 1, "decrement");
+      }
     }
   };
+
   const handleIncrement = () => {
-    if (count < maxQuantity) setCount(count + 1);
-    if (onSelect && name && count <= maxQuantity) {
-      onSelect(name, count + 1, "increment");
+    if (count < maxQuantity) {
+      setCount(count + 1);
+      if (onSelect && name && count <= maxQuantity) {
+        onSelect(name, count + 1, "increment");
+      }
+    } else {
+      if (onSelect && name) {
+        onSelect(name, count, "increment");
+      }
     }
   };
+
   useEffect(() => {
     setCount(selectedQuantity || 1);
   }, [selectedQuantity]);

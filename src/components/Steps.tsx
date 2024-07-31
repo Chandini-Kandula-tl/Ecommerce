@@ -22,7 +22,9 @@ export const Steps: FC<ISteps> = ({
           <div
             className={`flex items-center justify-center font-primary ${
               index === activeStepIndex ? "font-bold" : "font-normal"
-            } text-borderColor text-lg leading-[28px] tracking-[-0.4px]`}
+            } text-borderColor text-lg leading-[28px] tracking-[-0.4px] ${
+              index < activeStepIndex ? "cursor-pointer" : ""
+            }`}
           >
             {step}
           </div>

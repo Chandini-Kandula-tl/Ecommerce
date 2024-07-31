@@ -1,8 +1,14 @@
 import { Button } from "@/components/Button";
 import { useRouter } from "next/router";
+import { FC } from "react";
+interface IButtonProps {
+  path: string;
+  name: string;
+  rootClassName?: string;
+}
 const adminDashboard = () => {
   const router = useRouter();
-  const handleButton = (path: string, name: string, rootClassName?: string) => {
+  const HandleButton: FC<IButtonProps> = ({ path, name, rootClassName }) => {
     return (
       <Button
         buttonName={name}
@@ -15,9 +21,13 @@ const adminDashboard = () => {
   return (
     <div className="mt-[265px] flex justify-center items-center">
       <div className="w-[525px] h-[371px]">
-        {handleButton("/add-products", "Add Product", "")}
-        {handleButton("/admin-product-list", "View Products", "mt-[72px]")}
-        {handleButton("/orders", "View Orders", "mt-[72px]")}
+        <HandleButton path="/add-products" name="Add Product" />
+        <HandleButton
+          path="/admin-product-list"
+          name="View Products"
+          rootClassName="mt-[72px]"
+        />
+        {/* {handleButton("/orders", "View Orders", "mt-[72px]")} */}
       </div>
     </div>
   );

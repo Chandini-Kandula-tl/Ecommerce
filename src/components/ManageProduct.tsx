@@ -2,9 +2,16 @@ import { getApi, postApi } from "@/api-client/methods";
 import { Button } from "@/components/Button";
 import { CustomDropDown } from "@/components/CustomDropDown";
 import { CustomInput } from "@/components/CustomInput";
-import { IAddProduct, IProductParameters } from "@/utils/interfaces";
+import {
+  IAddProduct,
+  ICategory,
+  Icolor,
+  IProductParameters,
+  ISize,
+} from "@/utils/interfaces";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
 interface ManageProductProps {
   mode: "Add" | "Edit";
   initialValues: any;
@@ -32,6 +39,12 @@ export const ManageProducts = ({
     colors: [],
     sizes: [],
     categories: [],
+  });
+
+  const [selectedParameters, setSelectedParameters] = useState({
+    colors: [],
+    sizes: [],
+    category: [],
   });
 
   const getParametersData = async () => {
@@ -81,10 +94,17 @@ export const ManageProducts = ({
   const handleButton = async () => {
     // e.preventDefault();
     if (mode === "Add") {
-      const data = await postApi({
-        endUrl: "admin/add-product",
-        data: productDetails,
-      });
+      if (productDetails.images.length >= 4) {
+        const response = await postApi({
+          endUrl: "admin/add-product",
+          data: productDetails,
+        });
+        if (response?.status) {
+          toast.success(response?.message);
+        }
+      } else {
+        toast.error("Images atleast should be four.");
+      }
     } else {
       const data = await postApi({
         endUrl: "admin/edit-product",
@@ -92,14 +112,6 @@ export const ManageProducts = ({
       });
     }
   };
-
-  // const handleArrayInput = (name: string, value: string[] | string) => {
-  //   console.log(name, value);
-  //   setProductDetails((prev) => ({
-  //     ...prev,
-  //     [name]: value,
-  //   }));
-  // };
 
   useEffect(() => {
     setProductDetails((prev) => ({ ...prev, images: files }));
@@ -141,14 +153,91 @@ export const ManageProducts = ({
       });
     });
   };
-  console.log(initialValues, "IV");
-  console.log(parametersData.colors, "colors");
-  console.log(initialValues.color_ids);
-  console.log(initialValues.price);
+  // console.log(initialValues, "IV");
+  // console.log(parametersData.colors, "colors");
+  // console.log(initialValues.color_ids);
+  // console.log(initialValues.size_ids, "sizes");
+  // console.log(initialValues.price);
+  // console.log(initialValues.color_id, "asdbn");
 
   const backButton = () => {
     router.back();
   };
+
+  const handleSizes = () => {
+    const selectedSizes = initialValues.size_ids
+      .map((size_id: string) => {
+        return parametersData.sizes.find(
+          (size: ISize) => size.size_id === size_id
+        );
+      })
+      .filter((size: any) => size !== undefined);
+    setSelectedParameters((prev) => ({ ...prev, sizes: selectedSizes }));
+  };
+
+  const handleColors = () => {
+    const selectedColors = initialValues.color_ids
+      .map((color_id: string) => {
+        return parametersData.colors.find(
+          (color: Icolor) => color.color_id === color_id
+        );
+      })
+      .filter((size: any) => size !== undefined);
+    setSelectedParameters((prev) => ({ ...prev, colors: selectedColors }));
+  };
+
+  const getCategoryObject = (
+    categories: ICategory[],
+    category_id: string
+  ): ICategory | undefined => {
+    return categories.find((category) => category.category_id === category_id);
+  };
+
+  // const handleCategories = () => {
+  //   const selectedCategory = getCategoryObject(
+  //     parametersData.categories,
+  //     initialValues.category_id
+  //   );
+
+  //   // If a category is found, update the selectedParameters state
+  //   if (selectedCategory) {
+  //     setSelectedParameters((prev) => ({
+  //       ...prev,
+  //       category: selectedCategory,
+  //     }));
+  //   } else {
+  //     setSelectedParameters((prev) => ({
+  //       ...prev,
+  //       category: [],
+  //     }));
+  //   }
+  // };
+
+  useEffect(() => {
+    if (mode === "Edit" && initialValues) {
+      setProductDetails({
+        product_name: initialValues.product_name || "",
+        images: initialValues.images || [],
+        quantity: initialValues.quantity || 0,
+        size_ids: initialValues.size_ids || [],
+        price: initialValues.price || 0,
+        color_ids: initialValues.color_ids || [],
+        category_id: initialValues.category_id || "",
+        description: initialValues.description || "",
+      });
+      setFiles(initialValues.images || []);
+      handleSizes();
+      handleColors();
+      // handleCategories();
+    }
+  }, [
+    initialValues.size_ids,
+    parametersData.sizes,
+    parametersData.colors,
+    parametersData.categories,
+    mode,
+    initialValues,
+  ]);
 
   return (
     <div className="mt-[154px]">
@@ -176,7 +265,7 @@ export const ManageProducts = ({
                 </div>
               ))}
             </div>
-            <form onClick={() => inputRef.current?.click()}>
+            <form onClick={(e) => e.preventDefault}>
               <input
                 type="file"
                 name="file"
@@ -186,14 +275,13 @@ export const ManageProducts = ({
                 multiple
                 accept=".png,.jpg,.jpeg"
               />
-              <Button
-                buttonName={`${mode} images`}
-                buttonClassName="font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] !text-[#0D0D0D] py-[14px] text-center flex items-center justify-center"
-                rootClassName="border border-[#979797] mt-[57.5%] flex items-center justify-center cursor-pointer"
-                // onClick={() => inputRef.current?.click()}
-                onClick={() => handleFileChange}
-              />
             </form>
+            <Button
+              buttonName={`${mode} images`}
+              buttonClassName="font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] !text-[#0D0D0D] py-[14px] text-center flex items-center justify-center"
+              rootClassName="border border-[#979797] mt-[57.5%] flex items-center justify-center cursor-pointer"
+              onClick={() => inputRef.current?.click()}
+            />
           </div>
           {/* right side for productDetails fields */}
           <div className="w-[70%]">
@@ -238,6 +326,10 @@ export const ManageProducts = ({
                 placeholder={
                   mode === "Add" ? "Available Sizes" : `${mode} Sizes`
                 }
+                selectedItems={selectedParameters.sizes.map((size: ISize) => ({
+                  label: size.size_type,
+                  value: size.size_id,
+                }))}
 
                 // handleArrayInput
               />
@@ -269,12 +361,13 @@ export const ManageProducts = ({
                 placeholder={
                   mode === "Add" ? "Available Colors" : `${mode} Colors`
                 }
-                // selectedItems={initialValues.color_ids.map((color_id:string)=>({
-                //   getColorObject(parametersData.colors,color_id)
-                // }))}
+                selectedItems={selectedParameters.colors.map(
+                  (color: Icolor) => ({
+                    label: color.color_name,
+                    value: color.color_id,
+                  })
+                )}
               />
-              {/* handleArrayInput */}
-              {/* </div> */}
 
               <CustomDropDown
                 showDefault={false}

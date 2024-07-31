@@ -1,12 +1,12 @@
 import { getApi } from "@/api-client/methods";
 import { ManageProducts } from "@/components/ManageProduct";
-import { IProduct } from "@/utils/interfaces";
+import { IProduct, IProductDetails } from "@/utils/interfaces";
 import { useEffect, useState } from "react";
 interface IEditProduct {
   id: string;
 }
 const EditProduct = ({ id }: IEditProduct) => {
-  const [input, setInput] = useState<IProduct>({
+  const [productDetails, setProductDetails] = useState<IProduct>({
     product_id: "",
     product_name: "",
     description: "",
@@ -28,18 +28,20 @@ const EditProduct = ({ id }: IEditProduct) => {
   }, []);
 
   const getProductData = async () => {
-    const response = await getApi({ endUrl: `products/${id}` });
-    setInput(response?.data);
+    const response = await getApi<IProductDetails>({
+      endUrl: `products/${id}`,
+    });
+    setProductDetails(response?.data);
   };
   const data = {
-    product_name: input.product_name,
-    description: input.description,
-    images: input.images,
-    quantity: input.quantity,
-    size_ids: input.size_ids,
-    price: input.price,
-    color_ids: input.color_ids,
-    category_id: input.category_id,
+    product_name: productDetails.product_name,
+    description: productDetails.description,
+    images: productDetails.images,
+    quantity: productDetails.quantity,
+    size_ids: productDetails.size_ids,
+    price: productDetails.price,
+    color_ids: productDetails.color_ids,
+    category_id: productDetails.category_id,
   };
   return <ManageProducts initialValues={data} mode="Edit" id={id} />;
 };

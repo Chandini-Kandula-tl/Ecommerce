@@ -197,7 +197,7 @@ const shop = () => {
           </div>
         </div>
         {!loader.imagesLoader && props.totalProducts === 0 ? (
-          <div className="absolute flex items-center justify-center inset-5 font-primary text-[30px] text-[#979797]">
+          <div className="absolute flex items-center justify-center inset-20 font-primary text-[30px] text-[#979797]">
             No products available&#128543;
           </div>
         ) : (

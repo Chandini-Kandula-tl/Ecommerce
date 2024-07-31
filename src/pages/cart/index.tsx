@@ -74,7 +74,7 @@ const CartPage = () => {
   };
 
   const handleCheckoutButton = () => {
-    router.push("/checkout");
+    if (cartData.length > 0) router.push("/checkout");
   };
 
   const handleRoute = () => {

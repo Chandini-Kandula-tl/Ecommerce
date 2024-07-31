@@ -1,18 +1,32 @@
-import { getApi } from "@/api-client/methods";
+import { deleteApi, getApi } from "@/api-client/methods";
 import { Button } from "@/components/Button";
 import { CheckBox } from "@/components/CheckBox";
 import { CustomInput } from "@/components/CustomInput";
+import { Loader } from "@/components/Loader";
+import { LIMIT } from "@/utils/constants";
 import { formatCost } from "@/utils/helpers";
-import { IListProduct, IProductParameters } from "@/utils/interfaces";
+import {
+  IGetProducts,
+  IListProduct,
+  IProductParameters,
+} from "@/utils/interfaces";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 const AdminDashboardProductList = () => {
   const [isSelected, setIsSelected] = useState<{
     categories: string[];
   }>({ categories: [] });
   const router = useRouter();
   const [products, setProducts] = useState<IListProduct[]>([]);
+  const [props, setProps] = useState({
+    pageNumber: 1,
+    totalProducts: 0,
+    currentPageNumber: "1",
+    totalPages: 0,
+  });
+
   const [parameters, setParameters] = useState<IProductParameters>({
     colors: [],
     sizes: [],
@@ -21,24 +35,57 @@ const AdminDashboardProductList = () => {
   const [selected, setSelected] = useState<{
     categories: string[];
   }>({ categories: [] });
-
-  const handleClear = () => {
-    setIsSelected({ categories: [] });
-  };
+  const [loader, setLoader] = useState({
+    pageLoader: false,
+    imagesLoader: false,
+    buttonLoader: false,
+  });
 
   useEffect(() => {
-    getProductsData();
-    getProductParameters();
+    setLoader((prev) => ({ ...prev, pageLoader: true }));
+    getProductParameters().finally(() => {
+      setLoader((prev) => ({ ...prev, pageLoader: false }));
+    });
   }, []);
 
+  useEffect(() => {
+    if (props.pageNumber === 1) {
+      setLoader((prev) => ({ ...prev, imagesLoader: true }));
+      getProductsData().finally(() => {
+        setLoader((prev) => ({
+          ...prev,
+          imagesLoader: false,
+          buttonLoader: false,
+        }));
+      });
+    } else {
+      getProductsData().finally(() => {
+        setLoader((prev) => ({ ...prev, buttonLoader: false }));
+      });
+    }
+  }, [props.pageNumber, selected]);
+
   const getProductsData = async () => {
-    const response = await getApi({ endUrl: "list-products" });
+    const categoryQuery = handleQuery("category_id", selected.categories);
+    const response = await getApi<IGetProducts>({
+      endUrl: `list-products?page=${props.pageNumber}&limit=${LIMIT}&${
+        categoryQuery ? `&${categoryQuery}` : ""
+      }`,
+    });
     setProducts((prev) => [...prev, ...response?.data?.products]);
+    setProps((prev) => ({
+      ...prev,
+      totalProducts: response?.data?.total_productss,
+      currentPageNumber: response?.data?.current_page,
+      totalPages: response?.data?.totalPages,
+    }));
     console.log(response?.data?.products);
   };
 
   const getProductParameters = async () => {
-    const response = await getApi({ endUrl: "get-product-parameters" });
+    const response = await getApi<IProductParameters>({
+      endUrl: "get-product-parameters",
+    });
     const { colors, sizes, categories } = response?.data;
     setParameters({ colors, sizes, categories });
   };
@@ -57,7 +104,29 @@ const AdminDashboardProductList = () => {
     });
   };
 
+  const handleQuery = (type: string, array: string[]) => {
+    const res = array.map((item) => `${type}=${item}`).join("&");
+    return res;
+  };
+
+  const handleClear = () => {
+    setSelected({ categories: [] });
+    setProducts([]);
+    setProps((prev) => ({ ...prev, pageNumber: 1 }));
+  };
+
+  const handlePageNumber = () => {
+    const newPageNumber = props.pageNumber + 1;
+    setLoader((prev) => ({ ...prev, buttonLoader: true }));
+    setProps((prev) => ({
+      ...prev,
+      pageNumber: newPageNumber,
+    }));
+  };
+
   const handleInput = (name: string, value: string | string[]) => {
+    setProps((prev) => ({ ...prev, pageNumber: 1 }));
+    setProducts([]);
     setSelected((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -65,8 +134,37 @@ const AdminDashboardProductList = () => {
     router.push(`/edit-product/${id}`);
   };
 
+  const routeBack = () => {
+    router.back();
+  };
+
+  const handleDeleteButton = async (product_id: string) => {
+    // setL(true);
+    try {
+      const response = await deleteApi({
+        endUrl: `admin/delete-product/${product_id}`,
+      });
+      if (response?.status) {
+        toast.success(response?.message);
+      }
+      // admin/delete-product/{product_id}
+    } catch (err) {
+    } finally {
+    }
+  };
+
   return (
     <div className="mt-[154px]">
+      {loader.pageLoader && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <Loader />
+        </div>
+      )}
+      {loader.imagesLoader && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <Loader />
+        </div>
+      )}
       <div className="flex w-full justify-between">
         <div className="font-primary font-semibold text-[36px] leading-[44px] tracking-[-1.5px] text-[#000000] w-[75%]">
           Product List
@@ -107,6 +205,7 @@ const AdminDashboardProductList = () => {
               className="border-black text-[#111111]"
               selectedItems={selected.categories}
               onSelect={(name, value) => handleInput(name, value)}
+              isMultiple={true}
             />
           </div>
         </div>
@@ -142,6 +241,7 @@ const AdminDashboardProductList = () => {
                     buttonName="Delete"
                     buttonClassName="font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] !border !border-[#0D0D0D] w-full h-[46px]"
                     rootClassName="w-[50%]"
+                    onClick={() => handleDeleteButton(product.product_id)}
                   />
                 </div>
               </div>
@@ -153,13 +253,20 @@ const AdminDashboardProductList = () => {
         </div>
       </div>
       <div className="flex gap-[56px] justify-center mt-[74px]">
-        <Button
-          buttonName="Lode more orders"
-          buttonClassName="bg-[#000000] !text-[#FFFFFF] w-[298px] h-[50px] font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px]"
-        />
+        {!loader.imagesLoader &&
+          Number(props.currentPageNumber) < props.totalPages && (
+            <Button
+              buttonName="Lode more orders"
+              buttonClassName="bg-[#000000] !text-[#FFFFFF] w-[298px] h-[50px] font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px]"
+              onClick={handlePageNumber}
+              isLoading={loader.buttonLoader}
+            />
+          )}
+
         <Button
           buttonName="Back"
           buttonClassName="bg-[#000000] !text-[#FFFFFF] w-[149px] h-[50px] font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px]"
+          onClick={routeBack}
         />
       </div>
     </div>

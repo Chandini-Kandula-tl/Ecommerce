@@ -41,7 +41,7 @@ export default function App({ Component, pageProps }: AppProps) {
         {showNavBar && <NavBar />}
         {showHeader && <Header />}
         <ToastContainer />
-        <div className={"h-max bg-[#EFF2F6] px-[7%] pt-[43px]"}>
+        <div className={"h-max bg-[#EFF2F6] px-[7%] pt-[43px] pb-12"}>
           <Component {...pageProps} />
           {showFooter && <Footer />}
         </div>
