@@ -6,6 +6,7 @@ import {
   IAddProduct,
   ICategory,
   Icolor,
+  IParameters,
   IProductParameters,
   ISize,
 } from "@/utils/interfaces";
@@ -27,9 +28,9 @@ export const ManageProducts = ({
   const [productDetails, setProductDetails] = useState<IAddProduct>({
     product_name: "",
     images: [],
-    quantity: 0,
+    quantity: undefined,
     size_ids: [],
-    price: 0,
+    price: undefined,
     color_ids: [],
     category_id: "",
     description: "",
@@ -41,7 +42,7 @@ export const ManageProducts = ({
     categories: [],
   });
 
-  const [selectedParameters, setSelectedParameters] = useState({
+  const [selectedParameters, setSelectedParameters] = useState<IParameters>({
     colors: [],
     sizes: [],
     category: [],
@@ -143,6 +144,7 @@ export const ManageProducts = ({
   };
 
   const convertFilesArrayToBase64 = (files: File[]) => {
+    console.log(files);
     const base64Files: string[] = [];
     files.forEach((file) => {
       convertFileToBase64(file, (base64) => {
@@ -186,32 +188,25 @@ export const ManageProducts = ({
     setSelectedParameters((prev) => ({ ...prev, colors: selectedColors }));
   };
 
-  const getCategoryObject = (
-    categories: ICategory[],
-    category_id: string
-  ): ICategory | undefined => {
-    return categories.find((category) => category.category_id === category_id);
-  };
-
   // const handleCategories = () => {
-  //   const selectedCategory = getCategoryObject(
-  //     parametersData.categories,
-  //     initialValues.category_id
+  //   const selectedCategory = parametersData.categories.find(
+  //     (category) => category.category_id === initialValues.category_id
   //   );
-
-  //   // If a category is found, update the selectedParameters state
-  //   if (selectedCategory) {
-  //     setSelectedParameters((prev) => ({
-  //       ...prev,
-  //       category: selectedCategory,
-  //     }));
-  //   } else {
-  //     setSelectedParameters((prev) => ({
-  //       ...prev,
-  //       category: [],
-  //     }));
-  //   }
+  //   setSelectedParameters((prev) => ({
+  //     ...prev,
+  //     category: [selectedCategory],
+  //   }));
   // };
+
+  const handleCategories = () => {
+    const selectedCategoryArray: ICategory[] = parametersData.categories.filter(
+      (category) => category.category_id === initialValues.category_id
+    );
+    setSelectedParameters((prev) => ({
+      ...prev,
+      category: selectedCategoryArray,
+    }));
+  };
 
   useEffect(() => {
     if (mode === "Edit" && initialValues) {
@@ -228,7 +223,7 @@ export const ManageProducts = ({
       setFiles(initialValues.images || []);
       handleSizes();
       handleColors();
-      // handleCategories();
+      handleCategories();
     }
   }, [
     initialValues.size_ids,
@@ -240,15 +235,15 @@ export const ManageProducts = ({
   ]);
 
   return (
-    <div className="mt-[154px]">
-      <div className="h-[100%] sticky top-[154px]">
+    <div className="mt-[154px] h-[100%] sticky overflow-auto">
+      <div className="h-[100%]">
         <div className="font-primary font-semibold text-[36px] leading-[44px] tracking-[-1.5px] text-[#000000]">
           {`${mode} Product`}
         </div>
         <div className="mt-[77px] flex gap-[42px] h-[100%]">
           {/* left side for images */}
           <div className="flex flex-col w-[30%] mt-[20px] h-[100%]">
-            <div className=" grid grid-cols-4 gap-4 h-[100%]">
+            <div className=" grid grid-cols-5 gap-4 h-[100%]">
               {files.map((file, index) => (
                 <div key={index} className="relative w-full h-full">
                   <img
@@ -326,13 +321,16 @@ export const ManageProducts = ({
                 placeholder={
                   mode === "Add" ? "Available Sizes" : `${mode} Sizes`
                 }
-                selectedItems={selectedParameters.sizes.map((size: ISize) => ({
-                  label: size.size_type,
-                  value: size.size_id,
-                }))}
-
-                // handleArrayInput
+                selectedItems={
+                  mode === "Edit"
+                    ? selectedParameters.sizes.map((size: ISize) => ({
+                        label: size.size_type,
+                        value: size.size_id,
+                      }))
+                    : undefined
+                }
               />
+
               <CustomInput
                 className="bg-transparent pl-4 border-[#979797] font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#A9ABBD]"
                 placeholder={mode === "Add" ? "Price" : `${mode} Price`}
@@ -361,12 +359,14 @@ export const ManageProducts = ({
                 placeholder={
                   mode === "Add" ? "Available Colors" : `${mode} Colors`
                 }
-                selectedItems={selectedParameters.colors.map(
-                  (color: Icolor) => ({
-                    label: color.color_name,
-                    value: color.color_id,
-                  })
-                )}
+                selectedItems={
+                  mode === "Edit"
+                    ? selectedParameters.colors.map((color: Icolor) => ({
+                        label: color.color_name,
+                        value: color.color_id,
+                      }))
+                    : undefined
+                }
               />
 
               <CustomDropDown
@@ -380,7 +380,14 @@ export const ManageProducts = ({
                 name="category_id"
                 onSelect={(name, value) => handleInput(name, value)}
                 placeholder={mode === "Add" ? "Category" : `${mode} Category`}
-                // handle array productDetails
+                selectedItems={
+                  mode === "Edit"
+                    ? selectedParameters.category.map((item: ICategory) => ({
+                        label: item.category_name,
+                        value: item.category_id, // Changed to category_id
+                      }))
+                    : undefined
+                }
               />
             </div>
             <CustomInput

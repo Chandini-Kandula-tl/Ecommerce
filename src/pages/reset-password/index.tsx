@@ -56,6 +56,8 @@ const resetPassword = () => {
         if (status) {
           toast.success(message);
           router.push("/login");
+        } else {
+          toast.error(message);
         }
       }
     } catch (message) {

@@ -167,7 +167,7 @@ const shop = () => {
         />
         <ColorPicker
           name="color_ids"
-          className="mt-[50px] mb-[20px]"
+          className="font-primary font-bold text-[14px] leading-[20px] tracking-[-0.4px] text-[#000000] mt-[50px] mb-[20px]"
           className2="w-[25px] h-[25px]"
           colors={parameters.colors.map((color) => ({
             label: color.color_code,

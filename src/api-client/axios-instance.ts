@@ -1,6 +1,7 @@
 import { BASE_URL } from "@/utils/constants";
 import axios from "axios";
 import Router from "next/router";
+import { toast } from "react-toastify";
 
 export const getAccessToken = () => localStorage?.getItem("accessToken");
 const getRefreshToken = () => localStorage?.getItem("refreshToken");
@@ -39,9 +40,9 @@ axiosInstance.interceptors.response.use(
         ] = `Bearer ${newAccessToken}`;
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
         return axiosInstance(originalRequest);
-      } catch (err) {
+      } catch (err: any) {
         // toast.error(err.message);
-        // toast.error(err.response?.data?.message ?? "Error");
+        toast.error(err.response?.message ?? "Error");
         console.error("Token refresh failed:", { err });
 
         localStorage.removeItem("accessToken");
@@ -49,6 +50,7 @@ axiosInstance.interceptors.response.use(
         Router.push("/login"); // Redirect to login page
       }
     }
+    toast.error(error?.response?.data?.message);
     return Promise.reject(error?.response?.data);
   }
 );

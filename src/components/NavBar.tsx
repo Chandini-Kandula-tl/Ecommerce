@@ -18,7 +18,9 @@ export const NavBar = () => {
   const { state } = useTotalContext();
   const path = router.pathname;
   const isActiveShop = path.startsWith("/shop");
-  const isSpecialRoute = specialRoutes.includes(path);
+  // const isSpecialRoute = specialRoutes.includes(path);
+  const isSpecialRoute = specialRoutes.some((route) => path.startsWith(route));
+
   const [userData, setUserData] = useState<IUserData | null>(null);
   // const userData = JSON.parse(localStorage?.getItem("userData") ?? "");
   // const userName = userData?.full_name;

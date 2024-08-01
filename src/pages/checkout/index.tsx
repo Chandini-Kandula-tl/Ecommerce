@@ -141,14 +141,6 @@ const CheckOut = ({ id }: ProductId) => {
           activeStepIndex={currentStepIndex}
           onClickStep={handleStep}
         />
-        {/* {currentStepIndex === 0 && (
-          <Address onButtonClick={() => handleRendering(1)} />
-        )}
-        {currentStepIndex === 1 && (
-          <Shipping onButtonClick={() => handleRendering(2)} />
-        )}
-        {currentStepIndex === 2 && <Payment />} */}
-
         <div
           className={
             currentStepIndex === 0 ? "" : "h-[0px] opacity-0 w-[0px] fixed"
@@ -166,7 +158,9 @@ const CheckOut = ({ id }: ProductId) => {
         {currentStepIndex === 2 && <Payment />}
       </div>
       <div className="mt-[157px] w-[50%]">
-        <div className="font-primary font-normal text-[20px] ">Your Cart</div>
+        <div className="font-primary font-normal text-[20px] mb-[21px]">
+          Your Cart
+        </div>
         {cartData.map((item, index) => (
           <div key={item.product_id}>
             <CartItem

@@ -105,6 +105,10 @@ const ProductDetails = () => {
     );
   };
 
+  const handleCost = () => {
+    return quantity * productDetails.price;
+  };
+
   useEffect(() => {
     getData();
   }, [router]);
@@ -152,7 +156,7 @@ const ProductDetails = () => {
         </div>
         <div className="mt-[23px] flex gap-[13px]">
           <Button
-            buttonName={`Add to Cart - ${formatCost(productDetails.price)}`}
+            buttonName={`Add to Cart - ${formatCost(handleCost())}`}
             buttonClassName="py-[14px] px-[33px] font-primary font-semibold text-[xxs] leading-[22px] tracking-[-0.4px] bg-[#000000] !text-[#FFFFFF]"
             onClick={handleCart}
             isLoading={loader.buttonLoader}

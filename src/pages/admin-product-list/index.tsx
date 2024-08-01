@@ -3,6 +3,7 @@ import { Button } from "@/components/Button";
 import { CheckBox } from "@/components/CheckBox";
 import { CustomInput } from "@/components/CustomInput";
 import { Loader } from "@/components/Loader";
+import Spinner from "@/components/Spinner";
 import { LIMIT } from "@/utils/constants";
 import { formatCost } from "@/utils/helpers";
 import {
@@ -26,7 +27,8 @@ const AdminDashboardProductList = () => {
     currentPageNumber: "1",
     totalPages: 0,
   });
-
+  const [deletedState, setDeletedState] = useState<boolean>(false);
+  const [searchParams, setSearchParams] = useState<string>("");
   const [parameters, setParameters] = useState<IProductParameters>({
     colors: [],
     sizes: [],
@@ -41,34 +43,12 @@ const AdminDashboardProductList = () => {
     buttonLoader: false,
   });
 
-  useEffect(() => {
-    setLoader((prev) => ({ ...prev, pageLoader: true }));
-    getProductParameters().finally(() => {
-      setLoader((prev) => ({ ...prev, pageLoader: false }));
-    });
-  }, []);
-
-  useEffect(() => {
-    if (props.pageNumber === 1) {
-      setLoader((prev) => ({ ...prev, imagesLoader: true }));
-      getProductsData().finally(() => {
-        setLoader((prev) => ({
-          ...prev,
-          imagesLoader: false,
-          buttonLoader: false,
-        }));
-      });
-    } else {
-      getProductsData().finally(() => {
-        setLoader((prev) => ({ ...prev, buttonLoader: false }));
-      });
-    }
-  }, [props.pageNumber, selected]);
-
   const getProductsData = async () => {
     const categoryQuery = handleQuery("category_id", selected.categories);
     const response = await getApi<IGetProducts>({
-      endUrl: `list-products?page=${props.pageNumber}&limit=${LIMIT}&${
+      endUrl: `list-products?page=${
+        props.pageNumber
+      }&limit=${LIMIT}&search=${searchParams}&${
         categoryQuery ? `&${categoryQuery}` : ""
       }`,
     });
@@ -79,7 +59,22 @@ const AdminDashboardProductList = () => {
       currentPageNumber: response?.data?.current_page,
       totalPages: response?.data?.totalPages,
     }));
-    console.log(response?.data?.products);
+  };
+
+  const getNewProducts = async () => {
+    const categoryQuery = handleQuery("category_id", selected.categories);
+    const response = await getApi<IGetProducts>({
+      endUrl: `list-products?page=${props.pageNumber}&limit=${LIMIT}&${
+        categoryQuery ? `&${categoryQuery}` : ""
+      }`,
+    });
+    setProducts(response?.data?.products);
+    setProps((prev) => ({
+      ...prev,
+      totalProducts: response?.data?.total_productss,
+      currentPageNumber: response?.data?.current_page,
+      totalPages: response?.data?.totalPages,
+    }));
   };
 
   const getProductParameters = async () => {
@@ -88,20 +83,6 @@ const AdminDashboardProductList = () => {
     });
     const { colors, sizes, categories } = response?.data;
     setParameters({ colors, sizes, categories });
-  };
-
-  const handleCheckBox = (item: string) => {
-    setIsSelected((prevState) => {
-      const isItemSelected = prevState.categories.includes(item);
-      const categories = isItemSelected
-        ? prevState.categories.filter((category) => category !== item)
-        : [...prevState.categories, item];
-
-      return {
-        ...prevState,
-        categories,
-      };
-    });
   };
 
   const handleQuery = (type: string, array: string[]) => {
@@ -125,6 +106,9 @@ const AdminDashboardProductList = () => {
   };
 
   const handleInput = (name: string, value: string | string[]) => {
+    if (name === "search") {
+      setSearchParams(value as string);
+    }
     setProps((prev) => ({ ...prev, pageNumber: 1 }));
     setProducts([]);
     setSelected((prev) => ({ ...prev, [name]: value }));
@@ -139,137 +123,185 @@ const AdminDashboardProductList = () => {
   };
 
   const handleDeleteButton = async (product_id: string) => {
-    // setL(true);
+    // setDeletedState((prev)=>!prev);
+    setDeletedState(true);
     try {
       const response = await deleteApi({
         endUrl: `admin/delete-product/${product_id}`,
       });
       if (response?.status) {
+        setDeletedState((prev) => !prev);
         toast.success(response?.message);
       }
-      // admin/delete-product/{product_id}
     } catch (err) {
     } finally {
     }
   };
 
+  useEffect(() => {
+    if (deletedState === false) {
+      getNewProducts();
+    }
+    // setDeletedState((prev)=>!prev)
+    setDeletedState(false);
+  }, [deletedState]);
+
+  useEffect(() => {
+    setLoader((prev) => ({ ...prev, pageLoader: true }));
+    getProductParameters().finally(() => {
+      setLoader((prev) => ({ ...prev, pageLoader: false }));
+    });
+  }, []);
+
+  useEffect(() => {
+    if (props.pageNumber === 1) {
+      console.log("if");
+      setLoader((prev) => ({ ...prev, imagesLoader: true }));
+      getProductsData().finally(() => {
+        setLoader((prev) => ({
+          ...prev,
+          imagesLoader: false,
+          buttonLoader: false,
+        }));
+        // setDeletedState((prev) => !prev);
+      });
+    } else {
+      console.log("else");
+      getProductsData().finally(() => {
+        setLoader((prev) => ({ ...prev, buttonLoader: false }));
+        // setDeletedState((prev) => !prev);
+      });
+    }
+  }, [props.pageNumber, selected, searchParams]);
+
   return (
-    <div className="mt-[154px]">
-      {loader.pageLoader && (
+    <Spinner loading={loader.pageLoader}>
+      <div className="mt-[154px]">
+        {/* {loader.pageLoader && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <Loader />
         </div>
-      )}
-      {loader.imagesLoader && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <Loader />
+      )} */}
+        {loader.imagesLoader && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black">
+            <Loader />
+          </div>
+        )}
+        <div className="flex w-full justify-between">
+          <div className="font-primary font-semibold text-[36px] leading-[44px] tracking-[-1.5px] text-[#000000] w-[75%]">
+            Product List
+          </div>
+          <div className="w-[25%]">
+            <CustomInput
+              className="pl-[67px] font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] bg-transparent"
+              placeholder="Search for a product with name or ID"
+              type="text"
+              name="search"
+              max={0}
+              min={0}
+              isText={({ value, name }) => handleInput(name, value)}
+            />
+          </div>
         </div>
-      )}
-      <div className="flex w-full justify-between">
-        <div className="font-primary font-semibold text-[36px] leading-[44px] tracking-[-1.5px] text-[#000000] w-[75%]">
-          Product List
+        <div className="mt-[66px] flex">
+          {/* apply flex here */}
+          <div className="mt-[17px] w-[20%]">
+            <div className="flex flex-row gap-[8px] items-baseline">
+              <div className="font-primary font-semibold text-[22px] leading-[30px] tracking-[-0.55px] text-borderColor">
+                Filters
+              </div>
+              <Button
+                buttonClassName="underline font-normal font-primary text-[14px] leading-[20px] tracking-[-0.4px] !text-[#979797] w-[73px]"
+                buttonName="Clear filters"
+                onClick={handleClear}
+              />
+            </div>
+            <div className="font-primary font-bold text-[14px] leading-[20px] tracking-[-0.4px] mt-[19px] text-[#000000] mb-[20px]">
+              Categories
+            </div>
+            <div className="flex flex-col gap-[10px] font-primary font-normal text-[13px] leading-[17px] tracking-[-0.4px] text-[#000000]">
+              <CheckBox
+                categories={parameters.categories.map((category) => ({
+                  label: category.category_name,
+                  value: category.category_id,
+                }))}
+                name="categories"
+                className="border-black text-[#111111]"
+                selectedItems={selected.categories}
+                onSelect={(name, value) => handleInput(name, value)}
+                isMultiple={true}
+              />
+            </div>
+          </div>
+          <div className="w-[80%]">
+            {/* products part */}
+            {props.totalProducts === 0 && (
+              <div className="absolute flex items-center justify-center inset-20 font-primary text-[30px] text-[#979797]">
+                No products available&#128543;
+              </div>
+            )}
+            {products.map((product, index) => (
+              <div key={index}>
+                <div className="flex items-center justify-between gap-[66px]">
+                  <div className="flex gap-4 w-[60%]">
+                    <Image
+                      src={product.images[0]}
+                      alt="product image"
+                      width={129}
+                      height={133}
+                    />
+                    <div>
+                      <div className="font-primary font-semibold text-xxl leading-[30px] tracking-[-0.55px] text-[#000000]">
+                        {product.product_name}
+                      </div>
+                      <div className="font-primary font-semibold text-xxl leading-[30px] tracking-[-0.55px] text-[#000000]">
+                        {formatCost(product.price)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-[42px] w-[40%]">
+                    <Button
+                      buttonName="Edit"
+                      buttonClassName="font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] !border !border-[#0D0D0D] w-full h-[46px]"
+                      rootClassName="w-[50%]"
+                      onClick={() => handleEditButton(product.product_id)}
+                    />
+                    <Button
+                      buttonName="Delete"
+                      buttonClassName="font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] !border !border-[#0D0D0D] w-full h-[46px]"
+                      rootClassName="w-[50%]"
+                      onClick={() => handleDeleteButton(product.product_id)}
+                    />
+                  </div>
+                </div>
+                {index + 1 !== products.length && (
+                  <div className="w-full border border-[#909090] my-4"></div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="w-[25%]">
-          <CustomInput
-            className="pl-[67px] font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] bg-transparent"
-            placeholder="Search for a product with name or ID"
-            type="text"
-            max={0}
-            min={0}
+        <div className="flex gap-[56px] justify-center mt-[74px]">
+          {!loader.imagesLoader &&
+            Number(props.currentPageNumber) < props.totalPages && (
+              <div className="flex justify-center">
+                <Button
+                  buttonName="Load more products"
+                  buttonClassName="w-fit border-[2px] py-[11px] px-[76px] justify-center font-semibold text-[16px] !text-[#FFFFFF] bg-[#000000]"
+                  onClick={handlePageNumber}
+                  isLoading={loader.buttonLoader}
+                />
+              </div>
+            )}
+
+          <Button
+            buttonName="Back"
+            buttonClassName="bg-[#000000] !text-[#FFFFFF] w-[149px] h-[50px] font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px]"
+            onClick={routeBack}
           />
         </div>
       </div>
-      <div className="mt-[66px] flex">
-        {/* apply flex here */}
-        <div className="mt-[17px] w-[20%]">
-          <div className="flex flex-row gap-[8px] items-baseline">
-            <div className="font-primary font-semibold text-[22px] leading-[30px] tracking-[-0.55px] text-borderColor">
-              Filters
-            </div>
-            <Button
-              buttonClassName="underline font-normal font-primary text-[14px] leading-[20px] tracking-[-0.4px] !text-[#979797] w-[73px]"
-              buttonName="Clear filters"
-              onClick={handleClear}
-            />
-          </div>
-          <div className="font-primary font-bold text-[14px] leading-[20px] tracking-[-0.4px] mt-[19px] text-[#000000] mb-[20px]">
-            Categories
-          </div>
-          <div className="flex flex-col gap-[10px] font-primary font-normal text-[13px] leading-[17px] tracking-[-0.4px] text-[#000000]">
-            <CheckBox
-              categories={parameters.categories.map((category) => ({
-                label: category.category_name,
-                value: category.category_id,
-              }))}
-              name="categories"
-              className="border-black text-[#111111]"
-              selectedItems={selected.categories}
-              onSelect={(name, value) => handleInput(name, value)}
-              isMultiple={true}
-            />
-          </div>
-        </div>
-        <div className="w-[80%]">
-          {/* products part */}
-          {products.map((product, index) => (
-            <div key={index}>
-              <div className="flex items-center justify-between gap-[66px]">
-                <div className="flex gap-4 w-[60%]">
-                  <Image
-                    src={product.images[0]}
-                    alt="product image"
-                    width={129}
-                    height={133}
-                  />
-                  <div>
-                    <div className="font-primary font-semibold text-xxl leading-[30px] tracking-[-0.55px] text-[#000000]">
-                      {product.product_name}
-                    </div>
-                    <div className="font-primary font-semibold text-xxl leading-[30px] tracking-[-0.55px] text-[#000000]">
-                      {formatCost(product.price)}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-[42px] w-[40%]">
-                  <Button
-                    buttonName="Edit"
-                    buttonClassName="font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] !border !border-[#0D0D0D] w-full h-[46px]"
-                    rootClassName="w-[50%]"
-                    onClick={() => handleEditButton(product.product_id)}
-                  />
-                  <Button
-                    buttonName="Delete"
-                    buttonClassName="font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] !border !border-[#0D0D0D] w-full h-[46px]"
-                    rootClassName="w-[50%]"
-                    onClick={() => handleDeleteButton(product.product_id)}
-                  />
-                </div>
-              </div>
-              {index + 1 !== products.length && (
-                <div className="w-full border border-[#909090] my-4"></div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="flex gap-[56px] justify-center mt-[74px]">
-        {!loader.imagesLoader &&
-          Number(props.currentPageNumber) < props.totalPages && (
-            <Button
-              buttonName="Lode more orders"
-              buttonClassName="bg-[#000000] !text-[#FFFFFF] w-[298px] h-[50px] font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px]"
-              onClick={handlePageNumber}
-              isLoading={loader.buttonLoader}
-            />
-          )}
-
-        <Button
-          buttonName="Back"
-          buttonClassName="bg-[#000000] !text-[#FFFFFF] w-[149px] h-[50px] font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px]"
-          onClick={routeBack}
-        />
-      </div>
-    </div>
+    </Spinner>
   );
 };
 

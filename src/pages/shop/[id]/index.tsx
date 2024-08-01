@@ -90,6 +90,8 @@ const Product = () => {
       if (response?.status) {
         dispatch({ type: "ADD_CART", payload: response?.data?.cart_size });
         toast.success(response?.message);
+      } else {
+        toast.error(response?.message);
       }
     } catch (err) {
     } finally {

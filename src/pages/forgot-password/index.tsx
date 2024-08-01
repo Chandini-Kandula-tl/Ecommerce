@@ -40,6 +40,8 @@ const forgotPassword = () => {
       });
       if (apiData) {
         toast.success(apiData?.message);
+      } else {
+        toast.error("Error");
       }
     } catch (message) {
     } finally {

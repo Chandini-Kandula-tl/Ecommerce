@@ -9,9 +9,9 @@ export interface IApi {
 export interface IAddProduct {
   product_name: string;
   images: string[];
-  quantity: number;
+  quantity: number | undefined;
   size_ids: string[];
-  price: number;
+  price: number | undefined;
   color_ids: string[];
   category_id: string;
   description: string;
@@ -241,6 +241,12 @@ export interface IAddressData {
   country: string;
   mobile: string;
   optional_text: string;
+}
+
+export interface IParameters {
+  colors: Icolor[];
+  sizes: ISize[];
+  category: ICategory[];
 }
 
 export interface IPayment {

@@ -85,6 +85,8 @@ const registration = () => {
         if (status && message !== "User already exist") {
           toast.success(message);
           router.push("/login");
+        } else {
+          toast.error(message);
         }
       }
     } catch (message) {

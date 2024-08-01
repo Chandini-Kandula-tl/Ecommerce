@@ -1,4 +1,5 @@
 import { getApi } from "@/api-client/methods";
+import { ICartResponse } from "@/utils/interfaces";
 import { useRouter } from "next/router";
 import {
   ReactNode,
@@ -117,7 +118,7 @@ export default function CartContextProvider({
 
   const getCartProducts = async () => {
     try {
-      const response = await getApi({
+      const response = await getApi<ICartResponse>({
         endUrl: "user/cart",
       });
       dispatch({ type: "SYNC_API", payload: response?.data?.product_details });
