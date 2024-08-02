@@ -5,6 +5,7 @@ import React from "react";
 import { postApi } from "@/api-client/methods";
 import { useTotalContext } from "@/context/productContext";
 import { PaymentIntentData } from "@/utils/interfaces";
+import { toast } from "react-toastify";
 import CheckoutForm from "../components/CheckoutForm";
 
 const stripePromise = loadStripe(
@@ -22,15 +23,11 @@ export default function App() {
           endUrl: "user/create-order",
           data,
         });
-
-        console.log(responseData?.data?.client_secret);
-
-        console.log(responseData?.data?.client_secret);
         if (responseData?.data?.client_secret) {
           setClientSecret(responseData?.data?.client_secret);
         }
-      } catch (err) {
-        console.log(err);
+      } catch (err: any) {
+        toast.error(err?.message);
       }
     }
   };

@@ -61,7 +61,8 @@ const Product = () => {
         const defaultColor = response?.data?.color_ids[0];
         setIsSelected({ size_ids: [defaultSize], color_ids: [defaultColor] });
       }
-    } catch (message) {
+    } catch (message: any) {
+      toast.error(message?.message);
     } finally {
       setLoader((prev) => ({ ...prev, pageLoader: false }));
     }
@@ -93,7 +94,8 @@ const Product = () => {
       } else {
         toast.error(response?.message);
       }
-    } catch (err) {
+    } catch (err: any) {
+      toast.error(err?.message);
     } finally {
       setLoader((prev) => ({ ...prev, buttonLoader: false }));
     }

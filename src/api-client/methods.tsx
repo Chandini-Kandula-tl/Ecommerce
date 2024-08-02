@@ -130,7 +130,10 @@ export const getApi = async <T extends {}>({
   return await axiosInstance.get(endUrl);
 };
 
-export const putApi = async ({ endUrl, data }: IApi) => {
+export const putApi = async <T extends {}>({
+  endUrl,
+  data,
+}: IApi): Promise<IApiResponse<T>> => {
   return axiosInstance.put(endUrl, data);
 };
 

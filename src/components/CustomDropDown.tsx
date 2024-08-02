@@ -49,18 +49,19 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
         }
       }
     } else if (selectedItems) {
-      // Initialize selectedItem with selectedItems prop
       setSelectedItem(selectedItems);
     }
-  }, [defaultValue, selectedItems, list, onSelect, name]);
+  }, [defaultValue, list, onSelect, name]);
 
   const handleScroll = () => {
     setIsOpen(false);
   };
+
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
   const handleClickedItem = (item: IOption) => {
     setSelectedItem((prev) => {
       let newSelectedItem: IOption[] = [];
@@ -89,7 +90,19 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
     setSelectedItem((prev) => prev.filter((i) => i.value !== item.value));
   };
 
-  console.log(selectedItems, "selected");
+  const handleRemoveOption = (item: any) => {
+    const updatedSelectedItem = selectedItem.filter(
+      (i) => i.value !== item.value
+    );
+    setSelectedItem(updatedSelectedItem);
+
+    if (onSelect && name) {
+      onSelect(
+        name,
+        updatedSelectedItem.map((i) => i.value)
+      );
+    }
+  };
 
   return (
     <div
@@ -134,7 +147,12 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
                 >
                   {item.label}{" "}
                   {isMultiple && (
-                    <span className="text-[10px] text-gray">X</span>
+                    <span
+                      className="text-[10px] text-gray"
+                      onClick={() => handleRemoveOption(item)}
+                    >
+                      X
+                    </span>
                   )}
                 </span>
               ))}
@@ -148,6 +166,7 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
           style={{ position: "absolute", right: "10px" }}
         />
       </button>
+
       {isOpen && (
         <div className="absolute top-[120%] w-full bg-white shadow-md rounded-md z-10">
           {list

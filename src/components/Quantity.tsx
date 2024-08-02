@@ -16,7 +16,6 @@ export const Quantity: FC<IQuantity> = ({
   name,
   maxQuantity = Infinity,
 }) => {
-  console.log({ maxQuantity });
   const [count, setCount] = useState(1);
 
   const handleDecrement = () => {

@@ -5,6 +5,7 @@ import { IHomePageProduct } from "@/utils/interfaces";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import press from "../../../public/images/press-logos.svg";
 const home = () => {
   const router = useRouter();
@@ -16,8 +17,8 @@ const home = () => {
         endUrl: "home",
       });
       setProductsData(getApiData?.data?.products || []);
-    } catch (message) {
-      console.log(message);
+    } catch (message: any) {
+      toast.error(message?.message);
     }
   };
 

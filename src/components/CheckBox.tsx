@@ -46,7 +46,6 @@ export const CheckBox: FC<ICheckBox> = ({
       return newSelected;
     });
   };
-  // console.log(selected, "selected");
   return (
     <div
       className={

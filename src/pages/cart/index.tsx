@@ -8,6 +8,7 @@ import { useTotalContext } from "@/context/productContext";
 import { ICartDetails, ICartResponse } from "@/utils/interfaces";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 const orderInformation = [
   {
@@ -43,13 +44,19 @@ const CartPage = () => {
       if (response?.data?.products) {
         const products = response?.data?.products;
         const sortedProducts = products.sort(
-          (a: ICartDetails, b: ICartDetails) =>
-            a.product_id.localeCompare(b.product_id)
+          (a: ICartDetails, b: ICartDetails) => {
+            const compareProduct = a.product_id.localeCompare(b.product_id);
+            if (compareProduct === 0) {
+              return a.size.size_id.localeCompare(b.size.size_id);
+            }
+            return compareProduct;
+          }
         );
         setCartData(sortedProducts);
         dispatch({ type: "MANAGE_AMOUNT", payload: sortedProducts });
       }
-    } catch (err) {
+    } catch (err: any) {
+      toast.error(err?.message);
     } finally {
       setLoader((prev) => ({
         ...prev,

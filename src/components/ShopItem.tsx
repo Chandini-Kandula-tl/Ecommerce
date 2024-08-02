@@ -16,10 +16,8 @@ export const ShopItem: FC<IShopItem> = ({ items, rootClassName, ...props }) => {
 
   const handleImageClick = (product: IListProduct) => {
     // setProductDetails(product);
-    console.log(product);
     router.push(`/shop/${product.product_id}`);
   };
-  // console.log(items, "items");
   return (
     <div className={"grid-cols-4 grid gap-y-5 overflow-scroll" + rootClassName}>
       {items.map((item, index) => (

@@ -20,7 +20,6 @@ export const ColorPicker: FC<IColorPicker> = ({
   multiple = false,
   name,
 }) => {
-  console.log(selectedColors);
   const [selectedColor, setSelectedColor] = useState<string[]>([]);
 
   // useEffect(() => {

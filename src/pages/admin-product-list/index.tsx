@@ -27,7 +27,6 @@ const AdminDashboardProductList = () => {
     currentPageNumber: "1",
     totalPages: 0,
   });
-  const [deletedState, setDeletedState] = useState<boolean>(false);
   const [searchParams, setSearchParams] = useState<string>("");
   const [parameters, setParameters] = useState<IProductParameters>({
     colors: [],
@@ -53,22 +52,6 @@ const AdminDashboardProductList = () => {
       }`,
     });
     setProducts((prev) => [...prev, ...response?.data?.products]);
-    setProps((prev) => ({
-      ...prev,
-      totalProducts: response?.data?.total_productss,
-      currentPageNumber: response?.data?.current_page,
-      totalPages: response?.data?.totalPages,
-    }));
-  };
-
-  const getNewProducts = async () => {
-    const categoryQuery = handleQuery("category_id", selected.categories);
-    const response = await getApi<IGetProducts>({
-      endUrl: `list-products?page=${props.pageNumber}&limit=${LIMIT}&${
-        categoryQuery ? `&${categoryQuery}` : ""
-      }`,
-    });
-    setProducts(response?.data?.products);
     setProps((prev) => ({
       ...prev,
       totalProducts: response?.data?.total_productss,
@@ -123,28 +106,21 @@ const AdminDashboardProductList = () => {
   };
 
   const handleDeleteButton = async (product_id: string) => {
-    // setDeletedState((prev)=>!prev);
-    setDeletedState(true);
     try {
       const response = await deleteApi({
         endUrl: `admin/delete-product/${product_id}`,
       });
       if (response?.status) {
-        setDeletedState((prev) => !prev);
+        setProducts((prev) =>
+          prev.filter((product) => product.product_id !== product_id)
+        );
         toast.success(response?.message);
       }
-    } catch (err) {
+    } catch (err: any) {
+      toast.error(err?.message);
     } finally {
     }
   };
-
-  useEffect(() => {
-    if (deletedState === false) {
-      getNewProducts();
-    }
-    // setDeletedState((prev)=>!prev)
-    setDeletedState(false);
-  }, [deletedState]);
 
   useEffect(() => {
     setLoader((prev) => ({ ...prev, pageLoader: true }));
@@ -163,27 +139,24 @@ const AdminDashboardProductList = () => {
           imagesLoader: false,
           buttonLoader: false,
         }));
-        // setDeletedState((prev) => !prev);
       });
     } else {
-      console.log("else");
       getProductsData().finally(() => {
         setLoader((prev) => ({ ...prev, buttonLoader: false }));
-        // setDeletedState((prev) => !prev);
       });
     }
   }, [props.pageNumber, selected, searchParams]);
 
   return (
     <Spinner loading={loader.pageLoader}>
-      <div className="mt-[154px]">
+      <div className="mt-[154px] relative">
         {/* {loader.pageLoader && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <Loader />
         </div>
       )} */}
         {loader.imagesLoader && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black">
+          <div className="fixed inset-0 flex items-center justify-center z-50">
             <Loader />
           </div>
         )}
@@ -236,7 +209,7 @@ const AdminDashboardProductList = () => {
           <div className="w-[80%]">
             {/* products part */}
             {props.totalProducts === 0 && (
-              <div className="absolute flex items-center justify-center inset-20 font-primary text-[30px] text-[#979797]">
+              <div className="absolute self-center text-center inset-20 font-primary text-[30px] text-[#979797]">
                 No products available&#128543;
               </div>
             )}

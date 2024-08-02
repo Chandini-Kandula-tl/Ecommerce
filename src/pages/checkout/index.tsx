@@ -30,9 +30,9 @@ const steps = ["Address", "Shipping", "Payment"];
 const CheckOut = ({ id }: ProductId) => {
   const { dispatch, state } = useTotalContext();
   const [cartData, setCartData] = useState<ICartDetails[]>([]);
-
   const router = useRouter();
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
+
   useEffect(() => {
     if (id) {
       const {
@@ -99,9 +99,7 @@ const CheckOut = ({ id }: ProductId) => {
       address: state.checkout.address,
       product_details: formatData(),
     };
-
     dispatch({ type: "ORDER_DATA", payload: data });
-    console.log(state.cart.orderData, "orderData");
   };
 
   const handleRendering = (index: number) => {

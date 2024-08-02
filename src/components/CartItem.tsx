@@ -47,7 +47,6 @@ export const CartItem: FC<ICart> = ({
     size_id: string
   ) => {
     const data = { product_id, color_id, size_id };
-    console.log(data, "data");
     setLoader(true);
     try {
       const response = await deleteApi({

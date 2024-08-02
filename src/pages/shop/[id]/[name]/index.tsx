@@ -55,8 +55,16 @@ const ProductDetails = () => {
         setProductDetails(response?.data);
         const defaultSize = response?.data?.size_ids[0] || "";
         const defaultColor = response?.data?.color_ids[0] || "";
-        const selectedSizeIds = Array.isArray(size) ? size : [defaultSize];
-        const selectedColorIds = Array.isArray(color) ? color : [defaultColor];
+        const selectedSizeIds = size
+          ? Array.isArray(size)
+            ? size
+            : [size]
+          : [defaultSize];
+        const selectedColorIds = color
+          ? Array.isArray(color)
+            ? color
+            : [color]
+          : [defaultColor];
         setIsSelected({
           size_ids: selectedSizeIds,
           color_ids: selectedColorIds,
@@ -93,7 +101,8 @@ const ProductDetails = () => {
         toast.success(response?.message);
         dispatch({ type: "ADD_CART", payload: response?.data?.cart_size });
       }
-    } catch (err) {
+    } catch (err: any) {
+      toast.error(err?.message);
     } finally {
       setLoader((prev) => ({ ...prev, buttonLoader: false }));
     }

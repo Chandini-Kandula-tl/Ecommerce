@@ -43,7 +43,6 @@ export const SizePicker: FC<ISizePicker> = ({
       return newSelectedSizes;
     });
   };
-  console.log(alreadySelectedSizes, "asdfghjkl");
   // useEffect(() => {
   //   setSelectedSize(alreadySelectedSizes);
   // }, [alreadySelectedSizes]);

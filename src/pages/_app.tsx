@@ -36,6 +36,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const showFooter = router.pathname === "/home";
   return (
     <div className="bg-[#EFF2F6] h-[100vh]">
+      {/* <AuthProvider> */}
       <CartContextProvider>
         {/* <AppContext.Provider value={{ productDetails, setProductDetails }}> */}
         {showNavBar && <NavBar />}
@@ -46,6 +47,7 @@ export default function App({ Component, pageProps }: AppProps) {
           {showFooter && <Footer />}
         </div>
       </CartContextProvider>
+      {/* </AuthProvider> */}
       {/* </AppContext.Provider> */}
     </div>
   );

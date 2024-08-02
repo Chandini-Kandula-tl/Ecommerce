@@ -1,4 +1,4 @@
-import { getApi, postApi } from "@/api-client/methods";
+import { getApi, postApi, putApi } from "@/api-client/methods";
 import { Button } from "@/components/Button";
 import { CustomDropDown } from "@/components/CustomDropDown";
 import { CustomInput } from "@/components/CustomInput";
@@ -41,7 +41,7 @@ export const ManageProducts = ({
     sizes: [],
     categories: [],
   });
-
+  const [currentMode, setCurrentMode] = useState<string>("");
   const [selectedParameters, setSelectedParameters] = useState<IParameters>({
     colors: [],
     sizes: [],
@@ -52,7 +52,6 @@ export const ManageProducts = ({
     const response = await getApi<IProductParameters>({
       endUrl: "get-product-parameters",
     });
-
     const { colors, sizes, categories } = response?.data;
     setParametersData({
       colors: colors,
@@ -61,27 +60,35 @@ export const ManageProducts = ({
     });
   };
 
+  const isValidProductDetails = (
+    details: IAddProduct,
+    mode: "Add" | "Edit"
+  ): boolean => {
+    const {
+      product_name,
+      images,
+      quantity,
+      size_ids,
+      price,
+      color_ids,
+      category_id,
+      description,
+    } = details;
+    if (!product_name || !category_id || !description) return false;
+    if (mode === "Add" && images.length < 4) return false;
+    if (
+      quantity === undefined ||
+      price === undefined ||
+      size_ids.length === 0 ||
+      color_ids.length === 0
+    )
+      return false;
+    return true;
+  };
+
   useEffect(() => {
     getParametersData();
-    // if (mode === "Edit") {
-    //   setIntialValues();
-    // }
   }, []);
-
-  // const setIntialValues = () => {
-  //   if (initialValues) {
-  //     setProductDetails({
-  //       product_name: initialValues.product_name || "",
-  //       images: initialValues.images || [],
-  //       quantity: initialValues.quantity || 0,
-  //       size_ids: initialValues.size_ids || [],
-  //       price: initialValues.price || 0,
-  //       color_ids: initialValues.color_ids || [],
-  //       category_id: initialValues.category_id || "",
-  //       description: initialValues.description || "",
-  //     });
-  //   }
-  // };
 
   const handleInput = (name: string, value: string | string[] | number) => {
     if (name === "category_id") {
@@ -89,28 +96,65 @@ export const ManageProducts = ({
     } else {
       setProductDetails((prev) => ({ ...prev, [name]: value }));
     }
+    if (name === "size_ids") {
+      const selectedSizes = parametersData.sizes.filter((size: ISize) =>
+        (value as string[]).includes(size.size_id)
+      );
+      setSelectedParameters((prev) => ({ ...prev, sizes: selectedSizes }));
+    } else if (name === "color_ids") {
+      const selectedColors = parametersData.colors.filter((color: Icolor) =>
+        (value as string[]).includes(color.color_id)
+      );
+      setSelectedParameters((prev) => ({ ...prev, colors: selectedColors }));
+    } else if (name === "category_id") {
+      const selectedCategoryArray = parametersData.categories.filter(
+        (category: ICategory) => category.category_id === value
+      );
+      setSelectedParameters((prev) => ({
+        ...prev,
+        category: selectedCategoryArray,
+      }));
+    }
   };
+
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<string[]>([]);
+
   const handleButton = async () => {
-    // e.preventDefault();
-    if (mode === "Add") {
-      if (productDetails.images.length >= 4) {
-        const response = await postApi({
-          endUrl: "admin/add-product",
-          data: productDetails,
+    if (!isValidProductDetails(productDetails, mode)) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    try {
+      if (mode === "Add") {
+        if (productDetails.images.length >= 4) {
+          const response = await postApi({
+            endUrl: "admin/add-product",
+            data: productDetails,
+          });
+          if (response?.status) {
+            toast.success(response?.message);
+          }
+        } else {
+          toast.error("Images atleast should be four.");
+        }
+      } else {
+        const { id } = router.query;
+        const updatedProductDetails = {
+          ...productDetails,
+          product_id: id as string,
+        };
+
+        const response = await putApi({
+          endUrl: `admin/edit-product/${id}`,
+          data: updatedProductDetails,
         });
         if (response?.status) {
           toast.success(response?.message);
         }
-      } else {
-        toast.error("Images atleast should be four.");
       }
-    } else {
-      const data = await postApi({
-        endUrl: "admin/edit-product",
-        data: productDetails,
-      });
+    } catch (err: any) {
+      toast.error(err?.message);
     }
   };
 
@@ -119,11 +163,9 @@ export const ManageProducts = ({
   }, [files]);
 
   const handleRemoveImage = (index: number) => {
-    // console.log("clicked");
     setFiles((prev) => prev.filter((file, i) => i !== index));
   };
 
-  // console.log(files, "sdfghj");
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (fileList) {
@@ -144,9 +186,15 @@ export const ManageProducts = ({
   };
 
   const convertFilesArrayToBase64 = (files: File[]) => {
-    console.log(files);
+    const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
     const base64Files: string[] = [];
+
     files.forEach((file) => {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`File type not supported: ${file.name}`);
+        return;
+      }
+
       convertFileToBase64(file, (base64) => {
         base64Files.push(base64);
         if (base64Files.length === files.length) {
@@ -155,12 +203,6 @@ export const ManageProducts = ({
       });
     });
   };
-  // console.log(initialValues, "IV");
-  // console.log(parametersData.colors, "colors");
-  // console.log(initialValues.color_ids);
-  // console.log(initialValues.size_ids, "sizes");
-  // console.log(initialValues.price);
-  // console.log(initialValues.color_id, "asdbn");
 
   const backButton = () => {
     router.back();
@@ -188,16 +230,6 @@ export const ManageProducts = ({
     setSelectedParameters((prev) => ({ ...prev, colors: selectedColors }));
   };
 
-  // const handleCategories = () => {
-  //   const selectedCategory = parametersData.categories.find(
-  //     (category) => category.category_id === initialValues.category_id
-  //   );
-  //   setSelectedParameters((prev) => ({
-  //     ...prev,
-  //     category: [selectedCategory],
-  //   }));
-  // };
-
   const handleCategories = () => {
     const selectedCategoryArray: ICategory[] = parametersData.categories.filter(
       (category) => category.category_id === initialValues.category_id
@@ -210,6 +242,7 @@ export const ManageProducts = ({
 
   useEffect(() => {
     if (mode === "Edit" && initialValues) {
+      setCurrentMode(mode);
       setProductDetails({
         product_name: initialValues.product_name || "",
         images: initialValues.images || [],
@@ -235,15 +268,15 @@ export const ManageProducts = ({
   ]);
 
   return (
-    <div className="mt-[154px] h-[100%] sticky overflow-auto">
+    <div className="mt-[154px] h-[70vh]">
       <div className="h-[100%]">
         <div className="font-primary font-semibold text-[36px] leading-[44px] tracking-[-1.5px] text-[#000000]">
           {`${mode} Product`}
         </div>
-        <div className="mt-[77px] flex gap-[42px] h-[100%]">
+        <div className="mt-[77px] flex gap-[42px] h-[70%]">
           {/* left side for images */}
           <div className="flex flex-col w-[30%] mt-[20px] h-[100%]">
-            <div className=" grid grid-cols-5 gap-4 h-[100%]">
+            <div className="grid grid-cols-4 gap-4 h-[341px] overflow-y-auto ">
               {files.map((file, index) => (
                 <div key={index} className="relative w-full h-full">
                   <img
@@ -274,7 +307,7 @@ export const ManageProducts = ({
             <Button
               buttonName={`${mode} images`}
               buttonClassName="font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] !text-[#0D0D0D] py-[14px] text-center flex items-center justify-center"
-              rootClassName="border border-[#979797] mt-[57.5%] flex items-center justify-center cursor-pointer"
+              rootClassName="border border-[#979797] mt-10 flex items-center justify-center cursor-pointer"
               onClick={() => inputRef.current?.click()}
             />
           </div>
@@ -404,25 +437,7 @@ export const ManageProducts = ({
             />
           </div>
         </div>
-
-        {/* <form>
-        <productDetails
-          type="file"
-          name="file"
-          ref={inputRef}
-          onChange={handleFileChange}
-          className="hidden"
-          multiple
-          accept=".png,.jpg,.jpeg"
-        />
-      </form>
-      <Button
-        buttonName="Add images"
-        buttonClassName="font-primary font-semibold text-xxs leading-[22px] tracking-[-0.4px] !text-[#0D0D0D] py-[14px] text-center pl-10"
-        rootClassName="border border-[#979797] mt-10 flex items-center justify-center"
-        onClick={() => inputRef.current?.click()}
-      /> */}
-        <div className="mt-[123px] flex justify-center gap-[66px]">
+        <div className="flex justify-center gap-[66px]">
           <Button
             buttonName={mode === "Add" ? "Add" : "Save"}
             buttonClassName="bg-[#000000] !text-[#FFFFFF] w-[149px] h-[50px]"

@@ -66,7 +66,8 @@ const login = () => {
           toast.error(message);
         }
       }
-    } catch (message) {
+    } catch (message: any) {
+      toast.error(message?.message);
     } finally {
       setLoader(false);
     }
