@@ -21,7 +21,6 @@ interface ICustomInput
   max: number;
   source?: string;
   isSearch?: boolean;
-  value?: string;
   isValid?: ({
     valid,
     value,
@@ -45,7 +44,6 @@ export const CustomInput: FC<ICustomInput> = ({
   max,
   source,
   className,
-  value,
   isSearch = false,
   showPasswordIcon = true,
   onChange,
@@ -53,6 +51,7 @@ export const CustomInput: FC<ICustomInput> = ({
   isValid,
   isText,
   required,
+
   ...props
 }) => {
   const [error, setError] = useState<string>("");

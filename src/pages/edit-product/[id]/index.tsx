@@ -1,10 +1,10 @@
 import { useRouter } from "next/router";
 import EditProduct from "..";
-const index = () => {
+const EditProductId = () => {
   const router = useRouter();
   const { id } = router.query;
   if (!id) return;
   return <EditProduct id={id as string} />;
 };
 
-export default index;
+export default EditProductId;

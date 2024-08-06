@@ -28,9 +28,9 @@ export const MultipleImages: FC<IMulImages> = ({
   // }${colorQuery ? `&${colorQuery}` : ""}`,
   // const { productDetails } = useContext(AppContext);
 
-  const handleImageClick = () => {
+  const handleImageClick = (index: number) => {
     router.push(
-      `/shop/${product_id}/category?quantity=${quantity}&size=${selectedSize}&color=${selectedColor}`
+      `/shop/${product_id}/category?quantity=${quantity}&size=${selectedSize}&color=${selectedColor}&imageIndex=${index}`
     );
   };
 
@@ -46,7 +46,7 @@ export const MultipleImages: FC<IMulImages> = ({
           className={imageClassName}
           alt="image not found"
           style={{ objectFit: "fill", cursor: "pointer" }}
-          onClick={() => handleImageClick()}
+          onClick={() => handleImageClick(index)}
         />
       ))}
     </div>

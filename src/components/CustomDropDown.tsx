@@ -103,7 +103,6 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
       );
     }
   };
-
   return (
     <div
       className={`relative flex items-center justify-center w-auto min-w-[160px] border border-borderColor cursor-pointer ${rootClassName}`}
@@ -166,8 +165,25 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
           style={{ position: "absolute", right: "10px" }}
         />
       </button>
-
       {isOpen && (
+        <div className="absolute top-[120%] w-full bg-white shadow-md rounded-md z-10 max-h-[300px] overflow-auto">
+          {list
+            .filter((item) => !selectedItem.some((i) => i.value === item.value))
+            .map((item) => (
+              <div
+                key={item.label}
+                className="cursor-pointer font-secondary font-normal text-[17px] leading-[26px] tracking-[-0.3px] text-[#000000] py-2 px-4"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClickedItem(item);
+                }}
+              >
+                {item.label}
+              </div>
+            ))}
+        </div>
+      )}
+      {/* {isOpen && (
         <div className="absolute top-[120%] w-full bg-white shadow-md rounded-md z-10">
           {list
             .filter((item) => {
@@ -189,7 +205,7 @@ export const CustomDropDown: FC<ICustomDropDown> = ({
               </div>
             ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 };

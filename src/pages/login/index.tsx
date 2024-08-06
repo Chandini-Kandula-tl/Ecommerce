@@ -12,7 +12,7 @@ const fpopin = Poppins({
   subsets: ["latin"],
 });
 
-const login = () => {
+const Login = () => {
   const [isCheck, setIsCheck] = useState<boolean>(false);
   const [isValid, setIsValid] = useState<boolean>(false);
   const [formData, setFormData] = useState<IAuthData>({
@@ -54,6 +54,7 @@ const login = () => {
           let refreshToken = response?.data?.refreshToken;
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
+          localStorage.setItem("role", data?.role);
           const userData = JSON.parse(localStorage.getItem("userData") ?? "");
           if (data?.role === "customer") {
             toast.success("Login Successful");
@@ -192,4 +193,4 @@ const login = () => {
   );
 };
 
-export default login;
+export default Login;

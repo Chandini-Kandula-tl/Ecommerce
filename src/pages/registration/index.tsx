@@ -18,7 +18,7 @@ interface IError {
   confirmPasswordError: string;
 }
 
-const registration = () => {
+const Registration = () => {
   const router = useRouter();
   const [isValid, setIsValid] = useState<boolean>(false);
   const [loader, setLoader] = useState<boolean>(false);
@@ -195,4 +195,4 @@ const registration = () => {
     </div>
   );
 };
-export default registration;
+export default Registration;

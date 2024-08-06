@@ -25,6 +25,7 @@ export const ManageProducts = ({
   id,
 }: ManageProductProps) => {
   const router = useRouter();
+
   const [productDetails, setProductDetails] = useState<IAddProduct>({
     product_name: "",
     images: [],
@@ -35,19 +36,18 @@ export const ManageProducts = ({
     category_id: "",
     description: "",
   });
-
   const [parametersData, setParametersData] = useState<IProductParameters>({
     colors: [],
     sizes: [],
     categories: [],
   });
+  const [isMounted, setIsMounted] = useState<boolean>(true);
   const [currentMode, setCurrentMode] = useState<string>("");
   const [selectedParameters, setSelectedParameters] = useState<IParameters>({
     colors: [],
     sizes: [],
     category: [],
   });
-
   const getParametersData = async () => {
     const response = await getApi<IProductParameters>({
       endUrl: "get-product-parameters",
@@ -77,8 +77,8 @@ export const ManageProducts = ({
     if (!product_name || !category_id || !description) return false;
     if (mode === "Add" && images.length < 4) return false;
     if (
-      quantity === undefined ||
-      price === undefined ||
+      quantity === 0 ||
+      price === 0 ||
       size_ids.length === 0 ||
       color_ids.length === 0
     )
@@ -91,6 +91,11 @@ export const ManageProducts = ({
   }, []);
 
   const handleInput = (name: string, value: string | string[] | number) => {
+    if (name === "quantity") {
+      setProductDetails((prev) => ({ ...prev, [name]: Number(value) }));
+    } else if (name === "price") {
+      setProductDetails((prev) => ({ ...prev, [name]: Number(value) }));
+    }
     if (name === "category_id") {
       setProductDetails((prev) => ({ ...prev, [name]: value.toString() }));
     } else {
@@ -134,6 +139,20 @@ export const ManageProducts = ({
           });
           if (response?.status) {
             toast.success(response?.message);
+            setIsMounted(false);
+            setTimeout(() => setIsMounted(true), 10);
+            setProductDetails({
+              product_name: "",
+              images: [],
+              quantity: undefined,
+              size_ids: [],
+              price: undefined,
+              color_ids: [],
+              category_id: "",
+              description: "",
+            });
+            setFiles([]);
+            setSelectedParameters({ colors: [], sizes: [], category: [] });
           }
         } else {
           toast.error("Images atleast should be four.");
@@ -151,6 +170,20 @@ export const ManageProducts = ({
         });
         if (response?.status) {
           toast.success(response?.message);
+          setIsMounted(false);
+          setTimeout(() => setIsMounted(true), 10);
+          setProductDetails({
+            product_name: "",
+            images: [],
+            quantity: undefined,
+            size_ids: [],
+            price: undefined,
+            color_ids: [],
+            category_id: "",
+            description: "",
+          });
+          setFiles([]);
+          setSelectedParameters({ colors: [], sizes: [], category: [] });
         }
       }
     } catch (err: any) {
@@ -161,6 +194,12 @@ export const ManageProducts = ({
   useEffect(() => {
     setProductDetails((prev) => ({ ...prev, images: files }));
   }, [files]);
+
+  // useEffect(() => {
+  //   const bool = !isValidProductDetails(productDetails, mode);
+  //   console.log(bool, "bool");
+  //   setIsFormValid(bool);
+  // });
 
   const handleRemoveImage = (index: number) => {
     setFiles((prev) => prev.filter((file, i) => i !== index));
@@ -194,7 +233,6 @@ export const ManageProducts = ({
         toast.error(`File type not supported: ${file.name}`);
         return;
       }
-
       convertFileToBase64(file, (base64) => {
         base64Files.push(base64);
         if (base64Files.length === files.length) {
@@ -267,7 +305,7 @@ export const ManageProducts = ({
     initialValues,
   ]);
 
-  return (
+  return isMounted ? (
     <div className="mt-[154px] h-[70vh]">
       <div className="h-[100%]">
         <div className="font-primary font-semibold text-[36px] leading-[44px] tracking-[-1.5px] text-[#000000]">
@@ -323,7 +361,8 @@ export const ManageProducts = ({
                 min={0}
                 required={true}
                 isText={({ value, name }) => handleInput(name, value)}
-                defaultValue={initialValues.product_name}
+                // defaultValue={initialValues.product_name}
+                value={productDetails.product_name}
               />
               <CustomInput
                 className="bg-transparent pl-4 border-[#979797] font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#A9ABBD]"
@@ -336,7 +375,8 @@ export const ManageProducts = ({
                 isValid={({ value }) =>
                   handleInput("quantity", parseFloat(value))
                 }
-                defaultValue={initialValues.quantity || ""}
+                // defaultValue={initialValues.quantity || ""}
+                value={productDetails.quantity}
               />
             </div>
             <div className="mt-[24px] flex gap-[54px]">
@@ -373,7 +413,8 @@ export const ManageProducts = ({
                 min={1}
                 required={true}
                 isValid={({ value }) => handleInput("price", parseFloat(value))}
-                defaultValue={initialValues.price || ""}
+                // defaultValue={initialValues.price || ""}
+                value={productDetails.price}
               />
             </div>
             <div className="mt-[30px] flex gap-[54px] h-10">
@@ -417,24 +458,28 @@ export const ManageProducts = ({
                   mode === "Edit"
                     ? selectedParameters.category.map((item: ICategory) => ({
                         label: item.category_name,
-                        value: item.category_id, // Changed to category_id
+                        value: item.category_id,
                       }))
                     : undefined
                 }
               />
             </div>
+            {/* <div className="w-full overflow-x-auto bg-slate-400"> */}
             <CustomInput
-              className="mt-[30px] h-[120px] pl-4 bg-transparent font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#A9ABBD] border-[#979797] "
+              className="mt-[30px] h-[120px] pl-4 bg-transparent font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#A9ABBD] border-[#979797]"
               placeholder={
                 mode === "Add" ? "Description" : `${mode} Description`
               }
               type="text"
               name="description"
+              required={true}
               max={0}
               min={0}
               isText={({ value, name }) => handleInput(name, value)}
-              defaultValue={initialValues.description}
+              // defaultValue={initialValues.description}
+              value={productDetails.description}
             />
+            {/* </div> */}
           </div>
         </div>
         <div className="flex justify-center gap-[66px]">
@@ -451,5 +496,5 @@ export const ManageProducts = ({
         </div>
       </div>
     </div>
-  );
+  ) : null;
 };

@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import press from "../../../public/images/press-logos.svg";
-const home = () => {
+const Home = () => {
   const router = useRouter();
   const [productsData, setProductsData] = useState<IHomePageProduct[]>([]);
 
@@ -93,4 +93,4 @@ const home = () => {
   );
 };
 
-export default home;
+export default Home;

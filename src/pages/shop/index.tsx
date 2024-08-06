@@ -22,7 +22,7 @@ const dropDownOptions = [
   { label: "Recent", value: "recent" },
 ];
 
-const shop = () => {
+const Shop = () => {
   const [parameters, setParameters] = useState<IProductParameters>({
     colors: [],
     sizes: [],
@@ -56,7 +56,6 @@ const shop = () => {
 
   const getProductList = async () => {
     const categoryQuery = handleQuery("category_id", selected.categories);
-    console.log({ categoryQuery });
     const colorQuery = handleQuery("color_id", selected.color_ids);
     const response = await getApi<IGetProducts>({
       endUrl: `list-products?page=${
@@ -221,4 +220,4 @@ const shop = () => {
   );
 };
 
-export default shop;
+export default Shop;

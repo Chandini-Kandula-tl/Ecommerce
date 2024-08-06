@@ -46,13 +46,28 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState<number>(1);
 
   const getData = async () => {
-    const { id, quantity: queryQuantity, size, color } = router.query;
+    const {
+      id,
+      quantity: queryQuantity,
+      size,
+      color,
+      imageIndex,
+    } = router.query;
     try {
       const response = await getApi<IProductDetails>({
         endUrl: `products/${id}`,
       });
       if (response?.data) {
-        setProductDetails(response?.data);
+        const { images } = response?.data;
+        let recordedImages = images;
+        let index = Number(imageIndex);
+        recordedImages = [
+          images[index],
+          ...images.slice(0, index),
+          ...images.slice(index + 1),
+        ];
+
+        setProductDetails({ ...response.data, images: recordedImages });
         const defaultSize = response?.data?.size_ids[0] || "";
         const defaultColor = response?.data?.color_ids[0] || "";
         const selectedSizeIds = size

@@ -130,7 +130,7 @@ const CheckOut = ({ id }: ProductId) => {
 
   return (
     <div className="flex gap-[249px]">
-      <div className="w-[50%]">
+      <div className="w-[50%] h-[100%] top-[50px] sticky">
         <div className="font-primary font-semibold text-[36px] leading-[44px] tracking-[-1.5px] text-[#000000] mt-[111px]">
           Checkout
         </div>

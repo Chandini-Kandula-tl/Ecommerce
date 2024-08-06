@@ -6,7 +6,7 @@ interface IButtonProps {
   name: string;
   rootClassName?: string;
 }
-const adminDashboard = () => {
+const AdminDashboard = () => {
   const router = useRouter();
   const HandleButton: FC<IButtonProps> = ({ path, name, rootClassName }) => {
     return (
@@ -33,4 +33,4 @@ const adminDashboard = () => {
   );
 };
 
-export default adminDashboard;
+export default AdminDashboard;

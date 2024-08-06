@@ -12,7 +12,7 @@ const fpopin = Poppins({
   subsets: ["latin"],
 });
 
-const resetPassword = () => {
+const ResetPassword = () => {
   const router = useRouter();
   const [input, setInput] = useState<IResetPasswordData>({
     otp: "",
@@ -157,4 +157,4 @@ const resetPassword = () => {
   );
 };
 
-export default resetPassword;
+export default ResetPassword;

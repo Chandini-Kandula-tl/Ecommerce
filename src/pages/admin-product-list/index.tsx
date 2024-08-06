@@ -208,11 +208,16 @@ const AdminDashboardProductList = () => {
           </div>
           <div className="w-[80%]">
             {/* products part */}
-            {props.totalProducts === 0 && (
+            {!loader.imagesLoader && props.totalProducts === 0 && (
               <div className="absolute self-center text-center inset-20 font-primary text-[30px] text-[#979797]">
                 No products available&#128543;
               </div>
             )}
+            {/* {props.totalProducts === 0 && (
+              <div className="absolute self-center text-center inset-20 font-primary text-[30px] text-[#979797]">
+                No products available&#128543;
+              </div>
+            )} */}
             {products.map((product, index) => (
               <div key={index}>
                 <div className="flex items-center justify-between gap-[66px]">

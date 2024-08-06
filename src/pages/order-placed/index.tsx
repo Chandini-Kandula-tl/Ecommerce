@@ -2,7 +2,7 @@ import { Button } from "@/components/Button";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import orderImage from "../../../public/images/order.svg";
-const index = () => {
+const OrderSuccess = () => {
   const router = useRouter();
   const handleClick = () => {
     router.push("/shop");
@@ -24,7 +24,7 @@ const index = () => {
   );
 };
 
-export default index;
+export default OrderSuccess;
 {
   /* <div className="w-5 h-5">Gif
 <img src = {Gif}></img>

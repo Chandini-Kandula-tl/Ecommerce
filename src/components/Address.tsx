@@ -54,7 +54,7 @@ export const Address = ({ onButtonClick }: IAddress) => {
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
     null
   );
-  const { dispatch } = useTotalContext();
+  const { state, dispatch } = useTotalContext();
 
   useEffect(() => {
     getAddress();
@@ -118,7 +118,7 @@ export const Address = ({ onButtonClick }: IAddress) => {
       const response = await postApi({ endUrl: "user/add-address", data });
       if (response?.status && onButtonClick) {
         toast.success(response?.message);
-        dispatch({ type: "UPDATE_ADDRESS", payload: { address: data } });
+        dispatch({ type: "UPDATE_ADDRESS", payload: data });
         onButtonClick("clicked");
       } else {
         toast.error(response?.message);
@@ -132,6 +132,8 @@ export const Address = ({ onButtonClick }: IAddress) => {
       }
     }
   };
+
+  // console.log(state.address, "data");
 
   const defaultAddress = () => {
     return (
@@ -191,8 +193,8 @@ export const Address = ({ onButtonClick }: IAddress) => {
         <div className="flex gap-4 mt-[10px]">
           <CustomDropDown
             name="country"
-            label="Country"
-            labelClassName="font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#A9ABBD] pl-4 pr-2"
+            placeholder="Country"
+            // labelClassName="font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#A9ABBD] pl-4 pr-2"
             list={countries.map((country) => ({
               label: country.country_name,
               value: country.value,
@@ -204,8 +206,8 @@ export const Address = ({ onButtonClick }: IAddress) => {
           />
           <CustomDropDown
             name="city"
-            label="City"
-            labelClassName="font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#A9ABBD] pl-4 pr-2"
+            placeholder="City"
+            // labelClassName="font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#A9ABBD] pl-4 pr-2"
             showDefault={false}
             optionClassName="font-semibold text-[14px] leading-[16.45px] tracking-[-0.3px] text-borderColor"
             list={cities.map((city) => ({

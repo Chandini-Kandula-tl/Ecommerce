@@ -11,7 +11,7 @@ const fpopin = Poppins({
   subsets: ["latin"],
 });
 
-const forgotPassword = () => {
+const ForgotPassword = () => {
   const [isValid, setIsValid] = useState<boolean>(false);
   const [formData, setFormData] = useState<{ email: string }>({ email: "" });
   const [error, setError] = useState({ emailError: "" });
@@ -108,4 +108,4 @@ const forgotPassword = () => {
   );
 };
 
-export default forgotPassword;
+export default ForgotPassword;
