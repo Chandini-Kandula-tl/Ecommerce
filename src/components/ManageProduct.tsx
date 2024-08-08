@@ -12,7 +12,9 @@ import {
 } from "@/utils/interfaces";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
+import Modal from "react-modal";
 import { toast } from "react-toastify";
+
 interface ManageProductProps {
   mode: "Add" | "Edit";
   initialValues: any;
@@ -59,6 +61,8 @@ export const ManageProducts = ({
       categories: categories,
     });
   };
+  const [modalIsOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string>("");
 
   const isValidProductDetails = (
     details: IAddProduct,
@@ -278,6 +282,15 @@ export const ManageProducts = ({
     }));
   };
 
+  const handleImageClick = (file: string) => {
+    setSelectedImage(file);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   useEffect(() => {
     if (mode === "Edit" && initialValues) {
       setCurrentMode(mode);
@@ -320,6 +333,8 @@ export const ManageProducts = ({
                   <img
                     src={file}
                     alt="Uploaded Image Preview"
+                    onClick={() => handleImageClick(file)}
+                    className="cursor-pointer"
                     // width={270}
                     // height={270}
                   />
@@ -330,6 +345,19 @@ export const ManageProducts = ({
                   />
                 </div>
               ))}
+              <Modal isOpen={modalIsOpen} className="">
+                <img
+                  src={selectedImage}
+                  alt="image not found"
+                  className="translate-x-10 translate-y-10"
+                />
+                <button
+                  className="bg-black text-white rounded-full w-5 h-5 flex items-center justify-center top-0 left-0"
+                  onClick={closeModal}
+                >
+                  x
+                </button>
+              </Modal>
             </div>
             <form onClick={(e) => e.preventDefault}>
               <input

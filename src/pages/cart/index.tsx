@@ -54,6 +54,8 @@ const CartPage = () => {
         );
         setCartData(sortedProducts);
         dispatch({ type: "MANAGE_AMOUNT", payload: sortedProducts });
+      } else {
+        setCartData([]);
       }
     } catch (err: any) {
       toast.error(err?.message);
