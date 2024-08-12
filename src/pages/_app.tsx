@@ -1,4 +1,4 @@
-import AuthProvider from "@/components/authenticator";
+import AuthProvider from "@/components/Authenticator";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { NavBar } from "@/components/NavBar";

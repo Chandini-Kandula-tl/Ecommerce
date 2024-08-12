@@ -60,7 +60,7 @@ export const Footer = () => {
     );
   };
   return (
-    <div className="flex font-primary bg-[#EFF2F6] pt-[45px] justify-between">
+    <div className="flex font-primary bg-[#EFF2F6] pt-[95px] justify-between">
       <div>
         <div className="font-semibold text-[36px] leading-[44px] tracking-[-1.5px] text-borderColor mb-[10px]">
           Sign up for our newsletter

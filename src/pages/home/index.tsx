@@ -66,7 +66,7 @@ const Home = () => {
           Figma. You can even sync designs from your cloud storage!
         </div>
         <ShopButton />
-        <div className="my-[66px] flex gap-[25px] w-[100%] justify-between">
+        <div className="my-[66px] flex gap-[50px] w-[100%] justify-between hover:">
           {productsData.map((product, index) => (
             <div
               key={product.product_id}
@@ -80,9 +80,9 @@ const Home = () => {
                 // width={368}
                 // height={521}
                 // layout="fill"
-                width={"100%"}
-                height={"100%"}
-                className="mt-[85px] cursor-pointer"
+                // width={"100%"}
+                // height={"100%"}
+                className="mt-[85px] cursor-pointer hover:scale-110 duration-500 w-full h-full"
                 onClick={() => handleImageClick(product)}
               />
             </div>

@@ -1,3 +1,24 @@
+// import { Button, Flex } from "antd";
+// import { FC } from "react";
+// interface IButton {
+//   buttonName: string;
+//   buttonType: any;
+//   disabled?: boolean;
+//   className?: string;
+// }
+// export const CustomButton: FC<IButton> = ({
+//   buttonName,
+//   buttonType,
+//   className,
+//   ...props
+// }) => (
+//   <Flex gap="small" wrap>
+//     <Button type={buttonType} disabled={props.disabled} className={className}>
+//       {buttonName}
+//     </Button>
+//   </Flex>
+// );
+
 import Image from "next/image";
 import { ButtonHTMLAttributes, DetailedHTMLProps, FC } from "react";
 import { Loader } from "./Loader";

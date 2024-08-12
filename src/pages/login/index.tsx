@@ -1,51 +1,42 @@
 import { postApi } from "@/api-client/methods";
-import { Button } from "@/components/Button";
-import { CustomInput } from "@/components/CustomInput";
-import { IAuthData, IUserData } from "@/utils/interfaces";
+import { IUserData } from "@/utils/interfaces";
+import { Button, Checkbox, Form, FormProps, Input } from "antd";
 import { Poppins } from "next/font/google";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
+import useCookie, { getCookie } from "react-use-cookie";
 
 const fpopin = Poppins({
   weight: ["400", "700"],
   subsets: ["latin"],
 });
 
+type FieldType = {
+  email?: string;
+  password?: string;
+  remember?: string;
+};
+
 const Login = () => {
-  const [isCheck, setIsCheck] = useState<boolean>(false);
   const [isValid, setIsValid] = useState<boolean>(false);
-  const [formData, setFormData] = useState<IAuthData>({
-    email: "",
-    password: "",
-  });
-  const [error, setError] = useState({ emailError: "", passwordError: "" });
   const [loader, setLoader] = useState<boolean>(false);
+  const [userEmail, setUserEmail, removeUserEmail] = useCookie("email", "");
+  const [userPassword, setUserPassword, removeUserPassword] = useCookie(
+    "password",
+    ""
+  );
+
   const router = useRouter();
 
-  const validateForm = () => {
-    if (
-      !(error?.emailError?.length || error?.passwordError?.length) &&
-      formData.email?.length &&
-      formData.password?.length
-    ) {
-      setIsValid(true);
-    } else {
-      setIsValid(false);
-    }
-  };
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
+  const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     setLoader(true);
+    let formData = { email: values.email, password: values.password };
     try {
       const response = await postApi<IUserData>({
         endUrl: "login",
         data: formData,
       });
-
-      console.log({ response });
-
       if (response) {
         const { status, message, data } = response;
         if (status) {
@@ -55,6 +46,15 @@ const Login = () => {
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
           localStorage.setItem("role", data?.role);
+
+          if (values?.remember) {
+            setUserEmail(values?.email || "");
+            setUserPassword(values?.password || "");
+          } else {
+            removeUserEmail();
+            removeUserPassword();
+          }
+
           const userData = JSON.parse(localStorage.getItem("userData") ?? "");
           if (data?.role === "customer") {
             toast.success("Login Successful");
@@ -74,29 +74,22 @@ const Login = () => {
     }
   };
 
-  const handleCheck = () => {
-    setIsCheck((prev) => !prev);
-  };
-
-  const handleInput = (
-    name: string,
-    valid: boolean,
-    value: string,
-    errorMessage: string
+  const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (
+    errorInfo
   ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: valid ? value : "",
-    }));
-    setError((prev) => ({
-      ...prev,
-      [`${name}Error`]: valid || !value.length ? "" : errorMessage,
-    }));
+    setIsValid(false);
+    console.log("Failed:", errorInfo);
   };
 
-  useEffect(() => {
-    validateForm();
-  }, [formData]);
+  // const handleSubmit = async (e: any) => {
+  //   e.preventDefault();
+  // };
+
+  const initialValues = {
+    email: getCookie("email"),
+    password: getCookie("password"),
+    remember: getCookie("email") && getCookie("password"),
+  };
 
   return (
     <div className="flex justify-center items-center h-[90vh]">
@@ -108,85 +101,115 @@ const Login = () => {
           <div className="pt-2 font-primary font-medium text-xxs leading-[26px] tracking-[-0.2px] text-[#A9ABBD]">
             Login with email
           </div>
-          <form onSubmit={handleSubmit}>
-            <CustomInput
-              className="mt-[14px] py-[11.5px] pl-[16px] font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#A9ABBD]"
-              type="email"
+          <Form
+            name="basic"
+            initialValues={initialValues}
+            onFinish={onFinish}
+            onFinishFailed={onFinishFailed}
+            autoComplete="off"
+            onValuesChange={(changedValues, values) =>
+              console.log({ changedValues, values })
+            }
+          >
+            <Form.Item<FieldType>
               name="email"
-              placeholder="Email"
-              isValid={({ valid, value, name }) =>
-                handleInput(name, valid, value, "Invalid Email")
-              }
-              max={0}
-              errorMessage={error?.emailError}
-              min={0}
-              required={true}
-            />
-            <CustomInput
-              className="mt-[10px] py-[11.5px] pl-[16px] font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] !text-[#000000]"
-              type="password"
+              rules={[
+                { required: true, message: "Invalid email" },
+                {
+                  type: "email",
+                  message: "Invalid email",
+                },
+                () => ({
+                  validator(rule, value, callBack) {
+                    if (!value) {
+                      return Promise.resolve();
+                    }
+                    if (
+                      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}$/.test(
+                        value
+                      )
+                    ) {
+                      return Promise.resolve();
+                    } else {
+                      return Promise.reject("");
+                    }
+                  },
+                }),
+              ]}
+              // initialValue={getCookie("email")}
+            >
+              <Input
+                className="mt-[10px] py-[11.5px] font-primary font-normal text-sm leading-[16.45px] tracking-[-0.2px] border-[1px] border-black"
+                placeholder="Email"
+              />
+            </Form.Item>
+
+            <Form.Item<FieldType>
               name="password"
-              placeholder="Password"
-              isValid={({ valid, value, name }) =>
-                handleInput(
-                  name,
-                  valid,
-                  value,
-                  "Password must be 8-12 characters long and include an uppercase letter, a lowercase letter, a number, and a special character."
-                )
-              }
-              max={0}
-              min={0}
-              errorMessage={error?.passwordError}
-              required={true}
-            />
-            <div className="flex justify-between pt-[19px]">
-              <div className="flex gap-1">
-                <input
-                  type="checkbox"
-                  checked={isCheck}
-                  className="font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#979797]"
-                  onChange={() => handleCheck()}
-                  id="remember me"
-                />
-                <label className="font-primary font-normal text-sm leading-[16.45px] tracking-[-0.3px] text-[#979797]">
-                  Remember me
-                </label>
-              </div>
+              rules={[
+                { required: true, message: "Please input your password!" },
+                {
+                  min: 8,
+                  max: 12,
+                  message: "Invalid Password",
+                },
+                () => ({
+                  validator(rule, value, callBack) {
+                    if (!value) {
+                      return Promise.resolve();
+                    }
+                    if (
+                      /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&\-+=()]).{8,12}$/.test(
+                        value
+                      )
+                    ) {
+                      return Promise.resolve();
+                    } else {
+                      return Promise.reject("");
+                    }
+                  },
+                }),
+              ]}
+              // initialValue={getCookie("password")}
+            >
+              <Input.Password
+                className="py-[11.5px] font-primary font-normal text-sm leading-[16.45px] tracking-[-0.2px] border-[1px] border-black"
+                placeholder="Password"
+              />
+            </Form.Item>
+
+            <div className="flex justify-between">
+              <Form.Item<FieldType>
+                name="remember"
+                valuePropName="checked"
+                wrapperCol={{ offset: 0, span: 30 }}
+              >
+                <Checkbox>Remember me</Checkbox>
+              </Form.Item>
               <div
-                className="font-primary font-bold text-sm leading-[16.45px] tracking-[-0.3px] text-[#979797] cursor-pointer"
+                className="text-[#979797] font-bold text-sm leading-[16.45px] tracking-[-0.3px] cursor-pointer"
                 onClick={() => router.push("/forgot-password")}
               >
                 Forgot Password?
               </div>
             </div>
-            <Button
-              buttonName="Login"
-              type="submit"
-              disabled={!isValid}
-              buttonClassName={
-                `${fpopin.className} !font-medium text-sm leading-[21px] tracking-[-0.3px] py-[5px] px-[30px] !text-[#FFFFFF] ` +
-                (!isValid ? "bg-gray-500 cursor-not-allowed" : "bg-[#000000]")
-              }
-              rootClassName="flex justify-center mt-[21px]"
-              isLoading={loader}
-            />
-          </form>
+
+            <Form.Item className="flex items-center justify-center">
+              <Button
+                type="primary"
+                htmlType="submit"
+                className="bg-black font-bold text-sm"
+              >
+                Login
+              </Button>
+            </Form.Item>
+          </Form>
         </div>
         <div
-          className="cursor-pointer mt-[14px] leading-[21px] tracking-[-0.3px] flex justify-center"
+          className="cursor-pointer mt-[14px] leading-[21px] tracking-[-0.3px] flex justify-center text-[#A9ABBD] font-semibold text-[14px]"
           onClick={() => router.push("/registration")}
         >
-          <div
-            className={` px-[156px] font-normal text-sm  text-[#A9ABBD] ${fpopin.className} `}
-          >
-            Or create an{" "}
-            <span
-              className={`${fpopin.className} font-bold text-sm text-[#A9ABBD]`}
-            >
-              account
-            </span>
-          </div>
+          or create an account
         </div>
       </div>
     </div>
